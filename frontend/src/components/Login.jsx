@@ -23,7 +23,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
   // Location method (Flipkart/Swiggy style: 'gps_permission' vs 'manual')
   const [locationMode, setLocationMode] = useState('manual'); // 'gps_permission' | 'manual'
-  const [gpsStatus, setGpsStatus] = useState(null); // { granted: boolean, coords: {lat, lng}, message: string }
+  const [gpsStatus, setGpsStatus] = useState(null);
 
   // Login form state
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -47,7 +47,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     confirmPassword: ''
   });
 
-  // Validation Error States (Real-Time Feedback)
+  // Validation Error States
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [alertInfo, setAlertInfo] = useState(null);
@@ -144,7 +144,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
           district: assignedDistrict,
           areaType: match.areaType
         }));
-        setPincodeDetectedInfo(`⚡ Auto-Detected: ${assignedDistrict}, ${match.state} (${match.areaType === 'rural' ? 'Rural' : 'Urban'})`);
+        setPincodeDetectedInfo(`⚡ ${assignedDistrict}, ${match.state}`);
       } else {
         setPincodeDetectedInfo(null);
       }
@@ -158,19 +158,18 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     if (!navigator.geolocation) {
       setGpsStatus({
         granted: false,
-        message: 'ब्राउज़र में लोकेशन सर्विस उपलब्ध नहीं है (Geolocation is not supported by your browser)'
+        message: 'लोकेशन सेवा उपलब्ध नहीं है (Geolocation not supported)'
       });
       return;
     }
 
-    setGpsStatus({ granted: null, message: 'लोकेशन अनुमति मांगी जा रही है (Requesting GPS permission)...' });
+    setGpsStatus({ granted: null, message: 'लोकेशन अनुमति मांगी जा रही है (Requesting GPS)...' });
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         
-        // Match latitude/longitude to state zone approximation
         let detectedState = 'Maharashtra';
         let detectedDistrict = 'Pune';
         let detectedPin = '411001';
@@ -199,14 +198,14 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
         setGpsStatus({
           granted: true,
           coords: { lat, lng },
-          message: `📍 लोकेशन अनुमति स्वीकृत (Permission Granted)! Auto-filled ${detectedDistrict}, ${detectedState} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`
+          message: `📍 ${detectedDistrict}, ${detectedState} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`
         });
         setLocationMode('gps_permission');
       },
       (err) => {
         setGpsStatus({
           granted: false,
-          message: '❌ लोकेशन अनुमति अस्वीकृत (Location Permission Denied). कृपया नीचे मैन्युअल रूप से अपना राज्य व जिला चुनें।'
+          message: '❌ अनुमति अस्वीकृत (Permission Denied). कृपया नीचे मैन्युअल रूप से चुनें।'
         });
         setLocationMode('manual');
       },
@@ -233,7 +232,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     setErrors({});
     setAlertInfo({ 
       type: 'success', 
-      text: '🇮🇳 DigiLocker / Aadhaar Verified: All credentials & demographics auto-filled with valid data!' 
+      text: '🇮🇳 DigiLocker Verified: All credentials auto-filled!' 
     });
   };
 
@@ -246,7 +245,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     setOtpSent(true);
     setAlertInfo({ 
       type: 'info', 
-      text: '📲 OTP sent: [9 4 2 1 0 8] (Simulated JanDhwani DPI SMS Gateway)' 
+      text: '📲 OTP sent: [9 4 2 1 0 8]' 
     });
   };
 
@@ -279,10 +278,10 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
       isLoggedIn: true
     };
 
-    setAlertInfo({ type: 'success', text: '✅ पहचान प्रमाणित! (Citizen Identity Verified). Redirecting...' });
+    setAlertInfo({ type: 'success', text: '✅ पहचान प्रमाणित! (Verified). Redirecting...' });
     setTimeout(() => {
       onLoginSuccess(citizen);
-    }, 600);
+    }, 500);
   };
 
   const handleRegisterSubmit = (e) => {
@@ -332,7 +331,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     if (hasAnyError) {
       setAlertInfo({ 
         type: 'error', 
-        text: '⚠️ कृपया सभी अमान्य इनपुट ठीक करें (Please resolve the highlighted validation errors)' 
+        text: '⚠️ कृपया त्रुटियों को ठीक करें (Please fix the highlighted errors)' 
       });
       return;
     }
@@ -356,49 +355,42 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
       isLoggedIn: true
     };
 
-    setAlertInfo({ type: 'success', text: '🎉 नागरिक खाता सफलतापूर्वक बनाया गया! (Account Created & Verified).' });
+    setAlertInfo({ type: 'success', text: '🎉 खाता सफलतापूर्वक बनाया गया! (Account Created).' });
     setTimeout(() => {
       onLoginSuccess(citizen);
-    }, 600);
+    }, 500);
   };
 
   const handleDemoSelect = (demoCitizen) => {
-    setAlertInfo({ type: 'success', text: `✨ Demo Profile Loaded: ${demoCitizen.fullName} (${demoCitizen.state})` });
+    setAlertInfo({ type: 'success', text: `✨ Demo Profile: ${demoCitizen.fullName}` });
     setTimeout(() => {
       onLoginSuccess({ ...demoCitizen, isLoggedIn: true });
-    }, 400);
+    }, 350);
   };
 
   /* =========================================================================
-     SCREEN 1: PAN-INDIA MULTILINGUAL SELECTION SPLASH (All 22+ Languages)
+     SCREEN 1: MINIMAL & CLEAN LANGUAGE SELECTION
      ========================================================================= */
   if (!hasSelectedLanguage) {
     return (
       <div className="login-card lang-screen-card">
         <div className="login-header">
           <div className="emblem-row">
-            <span className="national-badge">🇮🇳 22 Official Scheduled Languages of India</span>
-            <span className="brics-badge">🌐 BRICS Multilingual DPI</span>
+            <span className="national-badge">🇮🇳 JanDhwani</span>
+            <span className="brics-badge">🌐 Bhashini AI</span>
           </div>
           <h1 className="login-title">जनध्वनि (JanDhwani)</h1>
-          <p className="login-tagline">3D Digital Twin Platform • Voice of the People</p>
-          
-          <div className="lang-prompt-box">
-            <h2 className="lang-prompt-title">अपनी भाषा चुनें • Select Your Language</h2>
-            <p className="lang-prompt-sub">
-              Accessible speech-to-text, Gemini AI auto-translation & government notifications in your mother tongue
-            </p>
-          </div>
+          <p className="login-tagline">Select Your Language • अपनी भाषा चुनें</p>
         </div>
 
-        {/* Language Search & Region Filters */}
+        {/* Minimal Search & Region Filters */}
         <div className="lang-controls">
           <div className="lang-search-wrapper">
             <span className="search-icon">🔍</span>
             <input 
               type="text"
               className="lang-search-input"
-              placeholder="Search language (उदा. मराठी, தமிழ், Bengali, Punjabi, Gujarati)..."
+              placeholder="Search language (मराठी, English, தமிழ், বাংলা)..."
               value={languageSearch}
               onChange={(e) => setLanguageSearch(e.target.value)}
             />
@@ -427,48 +419,39 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
           </div>
         </div>
 
-        {/* Comprehensive Grid of Pan-India & BRICS Languages */}
-        <div className="language-grid pan-india-grid">
+        {/* Minimal & Elegant Language Grid */}
+        <div className="language-grid minimal-lang-grid">
           {filteredLanguages.map((lang) => (
             <button
               key={lang.code}
               type="button"
-              className={`lang-card-btn ${lang.brics ? 'brics-lang' : ''} ${lang.popular ? 'popular-lang' : ''}`}
+              className={`lang-card-minimal ${lang.code === currentLang ? 'active-lang' : ''}`}
               onClick={() => handleLanguageSelect(lang.code)}
             >
-              <div className="lang-card-top">
-                <span className="lang-script">{lang.script}</span>
-                {lang.popular && <span className="popular-badge">⭐</span>}
-              </div>
-              <span className="lang-native">{lang.native}</span>
-              <span className="lang-english">{lang.name}</span>
-              <span className="lang-region-tag">{lang.region.split('(')[0]}</span>
+              <span className="lang-native-minimal">{lang.native}</span>
+              <span className="lang-sub-minimal">{lang.name}</span>
             </button>
           ))}
         </div>
 
         {filteredLanguages.length === 0 && (
           <div className="no-lang-match">
-            <p>No language matching "{languageSearch}". You can choose English or Hindi.</p>
+            <p>No language matching "{languageSearch}".</p>
             <button 
               type="button" 
               className="reset-lang-btn"
               onClick={() => { setLanguageSearch(''); setSelectedRegion('all'); }}
             >
-              Show All Languages
+              Show All
             </button>
           </div>
         )}
-
-        <div className="lang-footer-note">
-          <span>💡 Built with <strong>Digital India Bhashini</strong> & <strong>Google Gemini AI</strong> for 100% regional voice accessibility</span>
-        </div>
       </div>
     );
   }
 
   /* =========================================================================
-     SCREEN 2: SIGN UP / LOGIN (WITH STRICT VALIDATIONS & SWIGGY/FLIPKART LOCATION)
+     SCREEN 2: SIGN UP / LOGIN (CLEAN FORM WITHOUT PIN ANNOTATIONS)
      ========================================================================= */
   const currentDistricts = STATES_AND_DISTRICTS[regData.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
@@ -477,7 +460,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
       {/* Top Header with Active Language Indicator */}
       <div className="login-header">
         <div className="header-top-bar">
-          <span className="national-badge">🇮🇳 JanDhwani DPI Portal</span>
+          <span className="national-badge">🇮🇳 JanDhwani DPI</span>
           <button 
             type="button" 
             className="change-lang-btn"
@@ -507,7 +490,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
               onClick={() => handleDemoSelect(demo)}
               title={`Load profile for ${demo.fullName}`}
             >
-              👤 {demo.fullName.split(' ')[0]} ({demo.state.split(' ')[0]} • {demo.areaType === 'rural' ? 'Rural / BDO' : 'Urban / Ward'})
+              👤 {demo.fullName.split(' ')[0]} ({demo.state.split(' ')[0]})
             </button>
           ))}
         </div>
@@ -539,21 +522,20 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
       {authMode === 'register' ? (
         /* =========================================================================
-           REGISTRATION FORM: Strictly Validated Indian Inputs + Swiggy/Flipkart Location
+           REGISTRATION FORM (Clean, Minimal, Strictly Validated)
            ========================================================================= */
         <form onSubmit={handleRegisterSubmit} className="auth-form registration-form" noValidate>
           {/* 1-Click DigiLocker Fast-Fill Helper */}
           <div className="digilocker-helper-banner">
             <div className="digi-text">
-              <strong>🇮🇳 Easy Sign Up:</strong> Auto-populate credentials via DigiLocker / Aadhaar
+              <strong>🇮🇳 Easy Sign Up:</strong> Auto-fill via DigiLocker / Aadhaar
             </div>
             <button 
               type="button" 
               className="digi-fast-btn"
               onClick={handleDigiLockerFastFill}
-              title="1-Click Auto Fill"
             >
-              ⚡ 1-Click Fast Fill
+              ⚡ Fast Fill
             </button>
           </div>
 
@@ -577,15 +559,13 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                 required
               />
             </div>
-            {touched.fullName && errors.fullName ? (
+            {touched.fullName && errors.fullName && (
               <span className="error-text">⚠️ {errors.fullName}</span>
-            ) : (
-              <small className="field-hint">📌 {t.fullNameHint}</small>
             )}
           </div>
 
           <div className="form-row">
-            {/* Mobile Number Input (10 Digits Starting with 6-9) */}
+            {/* Mobile Number Input */}
             <div className="form-group">
               <label>{t.mobile} (10 Digits) <span className="req">*</span></label>
               <div className="input-wrapper">
@@ -601,10 +581,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   required
                 />
               </div>
-              {touched.mobile && errors.mobile ? (
+              {touched.mobile && errors.mobile && (
                 <span className="error-text">⚠️ {errors.mobile}</span>
-              ) : (
-                <small className="field-hint">📌 {t.mobileHint}</small>
               )}
             </div>
 
@@ -625,27 +603,21 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   onBlur={() => handleBlur('email')}
                 />
               </div>
-              {touched.email && errors.email ? (
+              {touched.email && errors.email && (
                 <span className="error-text">⚠️ {errors.email}</span>
-              ) : (
-                <small className="field-hint">📌 {t.emailHint}</small>
               )}
             </div>
           </div>
 
-          {/* =========================================================================
-             SECTION 2: FLIPKART / SWIGGY STYLE LOCATION PICKER & ADMINISTRATIVE GEOGRAPHY
-             ========================================================================= */}
+          {/* Section 2: Location & Administrative Geography */}
           <div className="section-title">
-            <div className="sec-title-row">
-              <span>{t.sec2}</span>
-            </div>
+            <span>{t.sec2}</span>
           </div>
 
           {/* Swiggy / Flipkart Style Location Mode Switcher */}
           <div className="location-permission-card">
             <div className="loc-permission-header">
-              <strong>📍 स्थान चयन विधि (Choose How to Set Your Location):</strong>
+              <strong>📍 स्थान चयन (Set Location):</strong>
             </div>
             
             <div className="loc-permission-actions">
@@ -654,7 +626,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                 className={`loc-perm-btn ${locationMode === 'gps_permission' ? 'active-perm' : ''}`}
                 onClick={requestLocationPermission}
               >
-                📡 डिवाइस लोकेशन शेयर करें (Share Live GPS Permission)
+                📡 शेयर लोकेशन (Share Live GPS)
               </button>
               
               <button
@@ -662,7 +634,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                 className={`loc-perm-btn ${locationMode === 'manual' ? 'active-perm' : ''}`}
                 onClick={() => setLocationMode('manual')}
               >
-                ✍️ मैन्युअल रूप से चुनें (Select Manually from Dropdown)
+                ✍️ मैन्युअल चुनें (Select Manually)
               </button>
             </div>
 
@@ -673,7 +645,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             )}
           </div>
 
-          {/* Smart Pincode Input (Strict 6 Digits, 1st digit 1-8) */}
+          {/* Pincode & Language */}
           <div className="form-row">
             <div className="form-group">
               <label>{t.pincode} (6 Digits) <span className="req">*</span></label>
@@ -682,7 +654,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                 <input 
                   type="text"
                   className={`input-field pincode-highlight ${touched.pincode && errors.pincode ? 'input-error' : ''}`}
-                  placeholder="उदा. 411001, 854301, 600001"
+                  placeholder="e.g. 411001, 854301"
                   value={regData.pincode}
                   onChange={(e) => handlePincodeChange(e.target.value)}
                   onBlur={() => handleBlur('pincode')}
@@ -690,10 +662,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   required
                 />
               </div>
-              {touched.pincode && errors.pincode ? (
+              {touched.pincode && errors.pincode && (
                 <span className="error-text">⚠️ {errors.pincode}</span>
-              ) : (
-                <small className="field-hint">📌 {t.pincodeHint}</small>
               )}
             </div>
 
@@ -713,7 +683,6 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   </option>
                 ))}
               </select>
-              <small className="field-hint">📌 {t.prefLangHint}</small>
             </div>
           </div>
 
@@ -723,7 +692,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             </div>
           )}
 
-          {/* State & District Strictly Linked Dropdowns */}
+          {/* State & District Linked Dropdowns */}
           <div className="form-row">
             <div className="form-group">
               <label>{t.state} <span className="req">*</span></label>
@@ -747,7 +716,6 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   <option key={st} value={st}>{st}</option>
                 ))}
               </select>
-              <small className="field-hint">📌 {t.stateHint}</small>
             </div>
 
             <div className="form-group">
@@ -766,10 +734,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   <option key={dst} value={dst}>{dst}</option>
                 ))}
               </select>
-              {touched.district && errors.district ? (
+              {touched.district && errors.district && (
                 <span className="error-text">⚠️ {errors.district}</span>
-              ) : (
-                <small className="field-hint">📌 {t.districtHint}</small>
               )}
             </div>
           </div>
@@ -804,7 +770,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   <input 
                     type="text"
                     className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
-                    placeholder="उदा. Haveli / Kasba / Jagraon Block"
+                    placeholder="उदा. Haveli / Kasba Block"
                     value={regData.tehsil}
                     onChange={(e) => {
                       setRegData({ ...regData, tehsil: e.target.value });
@@ -813,10 +779,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                     onBlur={() => handleBlur('tehsil')}
                     required
                   />
-                  {touched.tehsil && errors.tehsil ? (
+                  {touched.tehsil && errors.tehsil && (
                     <span className="error-text">⚠️ {errors.tehsil}</span>
-                  ) : (
-                    <small className="field-hint">📌 {t.tehsilHint}</small>
                   )}
                 </div>
                 <div className="form-group">
@@ -833,10 +797,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                     onBlur={() => handleBlur('panchayatOrWard')}
                     required
                   />
-                  {touched.panchayatOrWard && errors.panchayatOrWard ? (
+                  {touched.panchayatOrWard && errors.panchayatOrWard && (
                     <span className="error-text">⚠️ {errors.panchayatOrWard}</span>
-                  ) : (
-                    <small className="field-hint">📌 {t.panchayatHint}</small>
                   )}
                 </div>
               </>
@@ -847,7 +809,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   <input 
                     type="text"
                     className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
-                    placeholder="उदा. Pune PMC / GCC Chennai / KMC"
+                    placeholder="उदा. Pune PMC / GCC Chennai"
                     value={regData.tehsil}
                     onChange={(e) => {
                       setRegData({ ...regData, tehsil: e.target.value });
@@ -856,10 +818,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                     onBlur={() => handleBlur('tehsil')}
                     required
                   />
-                  {touched.tehsil && errors.tehsil ? (
+                  {touched.tehsil && errors.tehsil && (
                     <span className="error-text">⚠️ {errors.tehsil}</span>
-                  ) : (
-                    <small className="field-hint">📌 नगर निगम जोनल कार्यालय</small>
                   )}
                 </div>
                 <div className="form-group">
@@ -876,10 +836,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                     onBlur={() => handleBlur('panchayatOrWard')}
                     required
                   />
-                  {touched.panchayatOrWard && errors.panchayatOrWard ? (
+                  {touched.panchayatOrWard && errors.panchayatOrWard && (
                     <span className="error-text">⚠️ {errors.panchayatOrWard}</span>
-                  ) : (
-                    <small className="field-hint">📌 {t.municipalWardHint}</small>
                   )}
                 </div>
               </>
@@ -937,7 +895,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
         </form>
       ) : (
         /* =========================================================================
-           LOGIN FORM: Validated Mobile & OTP / Password
+           LOGIN FORM
            ========================================================================= */
         <form onSubmit={handleLoginSubmit} className="auth-form" noValidate>
           <div className="method-selector">
