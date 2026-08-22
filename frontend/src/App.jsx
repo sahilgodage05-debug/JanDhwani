@@ -232,7 +232,7 @@ function App() {
           detectedObjects = ["Asphalt Crack", "Road Cavity", "Traffic Obstruction"];
           matchScore = 94;
         } else if (lower.includes('medicine') || lower.includes('food') || lower.includes('दवा') || lower.includes('औषध')) {
-          detectedCategory = "FDA / Public Health Violation";
+          detectedCategory = "Public Health & Medical Compliance";
           detectedObjects = ["Product Packaging", "Expiry/Batch Label", "Substandard Seal"];
           matchScore = 98;
         }
@@ -311,8 +311,8 @@ function App() {
         dept = "Ministry of Jal Shakti (जल शक्ति) & Power Supply Board";
         oneLineSummary = "Critical water conduit rupture & power outage reported by citizen in local dialect.";
       } else if (lower.includes('medicine') || lower.includes('food') || lower.includes('दवा') || lower.includes('औषध')) {
-        dept = "Food & Drugs Administration (FDA / अन्न व औषध प्रशासन)";
-        oneLineSummary = "Suspected food safety / medicine compliance breach reported for physical verification.";
+        dept = "Ministry of Health & Family Welfare (स्वास्थ्य एवं परिवार कल्याण)";
+        oneLineSummary = "Suspected medicine / public health compliance breach reported for physical verification.";
       }
 
       setSubmissionResult({

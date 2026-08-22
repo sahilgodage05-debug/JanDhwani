@@ -104,7 +104,7 @@ const HIERARCHICAL_HOTSPOTS = [
     id: 'JD-510022',
     title: 'Substandard Drug Batch Alert',
     summary: 'Counterfeit cephalosporin antibiotics batch intercepted in wholesale drug warehouse.',
-    department: 'Food & Drugs Administration (FDA / Health)',
+    department: 'Ministry of Health & Family Welfare',
     deptKey: 'health_fda',
     state: 'Delhi (NCT)',
     district: 'New Delhi',
@@ -116,7 +116,7 @@ const HIERARCHICAL_HOTSPOTS = [
     baseUrgency: 9.0,
     povertyBoost: '+0.5 (Public Health Hazard)',
     areaType: 'Urban Commercial',
-    routing: 'Drug Controller General & Delhi State DI',
+    routing: 'Drug Controller General & Delhi State Inspector',
     citizen: 'Dr. Vivek Malhotra (UID: 9811099887)',
     imageVerified: true,
     imageConfidence: 99,
@@ -128,7 +128,7 @@ const HIERARCHICAL_HOTSPOTS = [
     id: 'JD-633019',
     title: 'BRICS Node: Substandard Pharmaceuticals',
     summary: 'Unregistered batch of counterfeit antibiotics intercepted in retail pharmacy.',
-    department: 'Food & Drugs Administration (FDA / ANVISA BRICS)',
+    department: 'Ministry of Public Health & Medicine (BRICS)',
     deptKey: 'health_fda',
     state: 'São Paulo',
     district: 'São Paulo',
@@ -140,7 +140,7 @@ const HIERARCHICAL_HOTSPOTS = [
     baseUrgency: 8.8,
     povertyBoost: '+0.3 (Public Health Hazard)',
     areaType: 'Urban Metropolitan',
-    routing: 'Secretaria Municipal da Saúde & ANVISA Inspector',
+    routing: 'Secretaria Municipal da Saúde & Health Inspector',
     citizen: 'Carlos Silva (UID: +55 11 98765-4321)',
     imageVerified: true,
     imageConfidence: 99,
@@ -162,7 +162,7 @@ const DEPARTMENTS = [
   { id: 'jal_shakti', label: '💧 Jal Shakti (Water)' },
   { id: 'pwd', label: '🛣️ PWD (Roads & Bridges)' },
   { id: 'power', label: '⚡ Power & Energy' },
-  { id: 'health_fda', label: '🏥 Health & FDA' }
+  { id: 'health_fda', label: '🏥 Health & Public Safety' }
 ];
 
 const STATES = ['All States', 'Maharashtra', 'Bihar', 'Tamil Nadu', 'Delhi (NCT)', 'Brazil (BRICS)'];
@@ -654,7 +654,7 @@ function DigitalTwinMap({ latestGrievance, onBackToPortal }) {
 
             {selectedHotspot.imageVerified && (
               <div className="modal-evidence-banner">
-                <span>📸 <strong>FDA-Style Multimodal Vision AI Verified:</strong> Visual evidence matches reported incident with {selectedHotspot.imageConfidence}% confidence.</span>
+                <span>📸 <strong>Google Gemini Vision AI Verified:</strong> Visual evidence matches reported incident with {selectedHotspot.imageConfidence}% confidence.</span>
               </div>
             )}
 
