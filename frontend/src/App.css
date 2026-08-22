@@ -1,17 +1,48 @@
 .container {
   width: 100%;
-  max-width: 600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 40px 20px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  align-items: stretch;
 }
 
 .card {
+  flex: 1;
   background: #ffffff;
   border-radius: 20px;
   padding: 35px;
   box-shadow: 0 15px 35px rgba(93, 64, 55, 0.08);
   border: 1px solid rgba(93, 64, 55, 0.05);
+}
+
+.language-selector {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #5d4037;
+  font-weight: 600;
+}
+
+.lang-dropdown {
+  margin-left: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #d7ccc8;
+  background-color: #fcfbf9;
+  color: #4e342e;
+  font-weight: bold;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-dropdown:focus {
+  border-color: #8d6e63;
 }
 
 .title {
@@ -168,4 +199,103 @@ textarea:focus {
 
 .submit-btn:active {
   transform: translateY(0);
+}
+
+/* 3D Map Styles - Realistic & User Friendly */
+.map-container {
+  flex: 1.5;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(93, 64, 55, 0.1);
+  border: 1px solid rgba(93, 64, 55, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.map-header {
+  padding: 25px;
+  text-align: center;
+  background: #fcfbf9;
+  border-bottom: 1px solid rgba(93, 64, 55, 0.1);
+}
+
+.map-header h2 {
+  color: #4e342e;
+  margin: 0;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.map-header p {
+  color: #8d6e63;
+  margin: 8px 0 0 0;
+  font-size: 15px;
+}
+
+.canvas-wrapper {
+  flex: 1;
+  width: 100%;
+  min-height: 500px;
+  background: #fcf8f5; /* matches the page background */
+}
+
+/* Friendly Tooltip for Map Markers */
+.friendly-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #d7ccc8;
+  padding: 12px 18px;
+  border-radius: 12px;
+  color: #3e2723;
+  pointer-events: none;
+  min-width: 200px;
+  box-shadow: 0 10px 25px rgba(93, 64, 55, 0.15);
+  backdrop-filter: blur(8px);
+  transform: translate(-50%, -100%);
+  margin-top: -15px;
+}
+
+.friendly-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0;
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.95) transparent transparent transparent;
+  display: block;
+  width: 0;
+}
+
+.friendly-header {
+  color: #4e342e;
+  font-weight: 800;
+  font-size: 16px;
+  border-bottom: 1px solid #efebe9;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.friendly-body p {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: #5d4037;
+  line-height: 1.4;
+}
+
+.friendly-score {
+  display: inline-block;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
 }

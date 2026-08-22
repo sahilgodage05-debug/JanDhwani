@@ -1,13 +1,28 @@
 import { useState, useRef } from 'react';
 import './App.css';
+import Map3D from './Map3D';
 
 function App() {
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [location, setLocation] = useState(null);
   const [fileName, setFileName] = useState('');
+  const [selectedLang, setSelectedLang] = useState('hi-IN');
   
   const recognitionRef = useRef(null);
+
+  const indianLanguages = [
+    { code: 'hi-IN', name: 'हिंदी (Hindi)' },
+    { code: 'en-IN', name: 'English (India)' },
+    { code: 'mr-IN', name: 'मराठी (Marathi)' },
+    { code: 'bn-IN', name: 'বাংলা (Bengali)' },
+    { code: 'ta-IN', name: 'தமிழ் (Tamil)' },
+    { code: 'te-IN', name: 'తెలుగు (Telugu)' },
+    { code: 'gu-IN', name: 'ગુજરાતી (Gujarati)' },
+    { code: 'kn-IN', name: 'ಕನ್ನಡ (Kannada)' },
+    { code: 'ml-IN', name: 'മലയാളം (Malayalam)' },
+    { code: 'pa-IN', name: 'ਪੰਜਾਬੀ (Punjabi)' }
+  ];
 
   const startRecording = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -18,8 +33,8 @@ function App() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = false;
-    // Set language to Hindi as default for India, or let it detect
-    recognitionRef.current.lang = 'hi-IN';
+    // Set language based on user selection
+    recognitionRef.current.lang = selectedLang;
     recognitionRef.current.interimResults = false;
 
     recognitionRef.current.onstart = () => {
@@ -77,6 +92,22 @@ function App() {
   return (
     <div className="container">
       <div className="card">
+        
+        <div className="language-selector">
+          <label>🌐 भाषा चुनें (Select Language): </label>
+          <select 
+            value={selectedLang} 
+            onChange={(e) => setSelectedLang(e.target.value)}
+            className="lang-dropdown"
+          >
+            {indianLanguages.map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <h1 className="title">JanDhwani</h1>
         <p className="subtitle">नागरिक शिकायत पोर्टल (Citizen Grievance Gateway)</p>
         
@@ -122,6 +153,8 @@ function App() {
           <button type="submit" className="submit-btn">Submit Grievance</button>
         </form>
       </div>
+
+      <Map3D />
     </div>
   )
 }
