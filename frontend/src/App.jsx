@@ -789,13 +789,7 @@ function App() {
           >
             {t.fileGrievanceTitle}
           </button>
-          <button 
-            type="button"
-            className={`nav-btn archive-nav-btn-highlight ${activeTab === 'resolved_archive' ? 'active' : ''}`}
-            onClick={() => setActiveTab('resolved_archive')}
-          >
-            {t.resolvedArchiveTab || 'Resolved Archive'} ({resolvedRecords.length})
-          </button>
+
         </div>
 
         {currentUser ? (
@@ -935,22 +929,6 @@ function App() {
                 <span>{t.syncedBanner}</span>
               </div>
 
-
-
-              {/* Instant Dual-Role Resolution & Removal Action */}
-              <div className="instant-resolution-card">
-                <div className="instant-res-header">
-                  <span>Instant Dual-Role Resolution & Removal Action:</span>
-                  <small>Test removing this grievance as either Citizen or Govt Authority</small>
-                </div>
-                <div className="instant-res-btn-row">
-                  <button 
-                    type="button" 
-                    className="instant-res-btn-citizen"
-                    onClick={() => {
-                      handleResolveByCitizen(
-                        submissionResult.ticketId, 
-                        `Citizen verified: "${submissionResult.coreDefect}" resolved cleanly. 5/5 Satisfaction.`, 
                         5
                       );
                       alert(`Ticket ${submissionResult.ticketId} marked as resolved by Citizen and archived.`);
