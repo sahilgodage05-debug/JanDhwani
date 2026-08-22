@@ -633,6 +633,33 @@ function DigitalTwinMap({ latestGrievance, onBackToPortal }) {
               <p className="ai-summary-text">"{selectedHotspot.summary}"</p>
             </div>
 
+            {/* Multi-Part Problem Decomposition */}
+            <div className="modal-decomposition-section">
+              <span className="decomp-section-title">📊 Structured Problem Entity Breakdown:</span>
+              <div className="modal-decomp-grid">
+                <div className="modal-decomp-cell">
+                  <small>📌 Core Defect</small>
+                  <strong>{selectedHotspot.coreDefect || selectedHotspot.title}</strong>
+                </div>
+                <div className="modal-decomp-cell">
+                  <small>👥 Affected Scope</small>
+                  <strong>{selectedHotspot.affectedScope || '14,000+ local citizens across sector'}</strong>
+                </div>
+                <div className="modal-decomp-cell">
+                  <small>⚠️ Risk & Hazard</small>
+                  <strong>{selectedHotspot.riskLevel || 'Public safety & civic infrastructure downtime'}</strong>
+                </div>
+                <div className="modal-decomp-cell">
+                  <small>⏱️ Duration</small>
+                  <strong>{selectedHotspot.duration || selectedHotspot.timestamp}</strong>
+                </div>
+                <div className="modal-decomp-cell modal-full-width">
+                  <small>🎯 Prescribed Action</small>
+                  <strong>{selectedHotspot.actionRequired || 'Emergency engineering inspection and direct budget dispatch'}</strong>
+                </div>
+              </div>
+            </div>
+
             <div className="modal-grid-details">
               <div className="modal-cell">
                 <small>Designated Ministry / Department</small>

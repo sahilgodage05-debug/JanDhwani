@@ -829,22 +829,98 @@ textarea:focus {
 .ai-summary-card {
   background: var(--brown-10);
   border: 1px solid var(--brown-100);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 16px;
   text-align: left;
+  margin-bottom: 14px;
+}
+
+.ai-summary-badge-header {
+  margin-bottom: 10px;
+}
+
+.ai-badge {
+  background: var(--brown-50);
+  border: 1px solid var(--brown-150);
+  color: var(--brown-900);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.executive-brief-box {
+  background: #ffffff;
+  border: 1px solid var(--brown-150);
+  border-left: 4px solid var(--brown-700);
+  border-radius: 8px;
+  padding: 10px 12px;
   margin-bottom: 12px;
 }
 
-.ai-summary-card h3 {
-  font-size: 13px;
+.executive-brief-box strong {
+  display: block;
+  font-size: 11px;
   color: var(--brown-800);
-  margin: 0 0 8px 0;
+  margin-bottom: 2px;
 }
 
-.ai-summary-card p {
-  margin: 5px 0;
-  font-size: 12px;
+.executive-brief-box p {
+  margin: 0;
+  font-size: 12.5px;
   color: var(--brown-700);
+  line-height: 1.35;
+  font-style: italic;
+}
+
+.decomposition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.decomp-cell {
+  background: #ffffff;
+  border: 1px solid var(--brown-100);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.decomp-cell.full-width {
+  grid-column: 1 / -1;
+  background: var(--brown-25);
+  border-color: var(--brown-150);
+}
+
+.decomp-cell small {
+  display: block;
+  font-size: 10px;
+  color: var(--brown-400);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.decomp-cell strong {
+  display: block;
+  font-size: 11.5px;
+  color: var(--brown-800);
+  line-height: 1.3;
+}
+
+.routing-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--brown-25);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--brown-100);
+  font-size: 11.5px;
+  color: var(--brown-800);
 }
 
 .score-badge {

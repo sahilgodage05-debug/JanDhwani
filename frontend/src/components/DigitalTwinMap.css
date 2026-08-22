@@ -497,6 +497,58 @@
   font-style: italic;
 }
 
+.modal-decomposition-section {
+  background: rgba(30, 20, 16, 0.95);
+  border: 1px solid var(--brown-700);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.decomp-section-title {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #ffab91;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.modal-decomp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.modal-decomp-cell {
+  background: var(--brown-900);
+  border: 1px solid var(--brown-700);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.modal-decomp-cell.modal-full-width {
+  grid-column: 1 / -1;
+  background: rgba(255, 87, 34, 0.12);
+  border-color: #ff5722;
+}
+
+.modal-decomp-cell small {
+  display: block;
+  font-size: 9.5px;
+  color: var(--brown-200);
+  text-transform: uppercase;
+  margin-bottom: 1px;
+}
+
+.modal-decomp-cell strong {
+  display: block;
+  font-size: 11px;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
 .modal-grid-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
