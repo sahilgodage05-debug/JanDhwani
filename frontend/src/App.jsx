@@ -288,16 +288,33 @@ function App() {
           onContinueAsGuest={() => setActiveTab('grievance')}
         />
       ) : (
+        <div className="container" style={{ padding: 0, margin: 0, width: '100%' }}>
+          <div className="card">
+            <div className="card-header">
+              <div className="emblem-row">
+                <span className="national-badge">🇮🇳 JanDhwani DPI</span>
+                <span className="brics-badge">🤖 Gemini Vision AI</span>
+              </div>
+              <h1 className="title">{t.portalTitle}</h1>
+              <p className="subtitle">{t.fileGrievanceTitle} • {t.fileGrievanceSub}</p>
             </div>
-          )}
 
-<<<<<<< HEAD
-          <button type="submit" className="submit-btn">Submit Grievance</button>
-        </form>
-      </div>
-
-      <Map3D />
-=======
+            {/* Citizen Attached Demographics Banner */}
+            {currentUser && (
+              <div className="attached-profile-banner">
+                <div className="banner-title">
+                  <span>🛡️ {t.verifiedBadge}</span>
+                </div>
+                <div className="banner-grid">
+                  <div><strong>{t.fullName}:</strong> {currentUser.fullName}</div>
+                  <div><strong>{t.mobile}:</strong> {currentUser.mobile}</div>
+                  <div><strong>{t.state}:</strong> {currentUser.state}</div>
+                  <div><strong>{t.district}:</strong> {currentUser.district}</div>
+                  <div><strong>{t.areaType}:</strong> <span className="highlight-tag">{currentUser.areaType === 'rural' ? t.rural : t.urban}</span></div>
+                  <div><strong>{t.pincode}:</strong> 📮 {currentUser.pincode}</div>
+                </div>
+              </div>
+            )}
           {submissionResult ? (
             <div className="success-screen">
               <div className="success-icon">🚀</div>
