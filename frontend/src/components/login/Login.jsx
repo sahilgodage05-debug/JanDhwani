@@ -753,22 +753,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
            LOGIN FORM (Rendered In Chosen Language Only)
            ========================================================================= */
         <form onSubmit={handleLoginSubmit} className="auth-form" noValidate>
-          <div className="method-selector">
-            <button
-              type="button"
-              className={`method-btn ${loginMethod === 'otp' ? 'selected' : ''}`}
-              onClick={() => setLoginMethod('otp')}
-            >
-              OTP Login
-            </button>
-            <button
-              type="button"
-              className={`method-btn ${loginMethod === 'password' ? 'selected' : ''}`}
-              onClick={() => setLoginMethod('password')}
-            >
-              Password Login
-            </button>
-          </div>
+
 
           <div className="form-group">
             <label>{t.mobile} <span className="req">*</span></label>
@@ -784,31 +769,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             </div>
           </div>
 
-          {loginMethod === 'otp' ? (
-            <div className="form-group">
-              <label>OTP <span className="req">*</span></label>
-              <div className="otp-row">
-                <div className="input-wrapper" style={{ flex: 1 }}>
-                  <input 
-                    type="text"
-                    className="input-field"
-                    placeholder="6-digit OTP"
-                    value={loginOtp}
-                    onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    maxLength="6"
-                    required
-                  />
-                </div>
-                <button 
-                  type="button" 
-                  className="otp-btn" 
-                  onClick={handleSendOtp}
-                >
-                  {otpSent ? 'Resend OTP' : 'Send OTP'}
-                </button>
-              </div>
-            </div>
-          ) : (
             <div className="form-group">
               <label>{t.createPass} <span className="req">*</span></label>
               <div className="input-wrapper">
@@ -822,7 +782,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 />
               </div>
             </div>
-          )}
 
           <button type="submit" className="auth-submit-btn">
             {t.loginSubmit}
