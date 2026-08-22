@@ -1434,7 +1434,7 @@ function App() {
           </div>
           <Map3D />
         </div>
-
+      )}
     </div>
   );
 }
