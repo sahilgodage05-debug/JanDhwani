@@ -87,8 +87,8 @@ export default function GovernmentEmblem({ size = 42, compact = false, theme = '
     <div className={`gov-emblem-header-wrapper ${compact ? 'compact-emblem' : ''} ${isDark ? 'dark-theme-emblem' : ''}`}>
       <IndiaEmblemSvg size={size} color={emblemColor} />
       <div className="gov-text-block">
-        <div className="gov-hindi-line">भारत सरकार</div>
-        <div className="gov-english-line">Government of India</div>
+        <div className="gov-hindi-line">जनध्वनि प्लेटफॉर्म</div>
+        <div className="gov-english-line">JanDhwani Citizen Portal</div>
         {!compact && (
           <div className="gov-dept-subline">
             National Digital Public Infrastructure (DPI)
