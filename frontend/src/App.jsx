@@ -619,7 +619,7 @@ function App() {
         povertyBoost: '+0.0',
         areaType: currentUser?.areaType === 'rural' ? 'Rural' : 'Urban',
         routing: locInfo.routing,
-        citizen: currentUser ? ${currentUser.fullName} : 'Citizen',
+        citizen: currentUser ? currentUser.fullName : 'Citizen',
         imageVerified: imageAiAnalysis?.verified || false,
         imageConfidence: imageAiAnalysis?.matchScore || null,
         status: 'Reported',
