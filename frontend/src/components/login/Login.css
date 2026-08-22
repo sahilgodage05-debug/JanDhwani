@@ -17,13 +17,15 @@
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
   border-radius: 22px;
   padding: 30px 32px;
   box-shadow: 0 15px 40px rgba(62, 39, 35, 0.08);
   border: 1px solid var(--brown-100);
   width: 100%;
+  max-width: 750px;
+  margin: 30px;
   box-sizing: border-box;
   animation: fadeIn 0.35s ease-in-out;
 }
