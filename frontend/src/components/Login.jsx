@@ -8,6 +8,7 @@ import {
 } from '../indiaData';
 import { VALIDATION_RULES } from '../validators';
 import { UI_STRINGS } from '../translations';
+import GovernmentEmblem from './GovernmentEmblem';
 import './Login.css';
 
 function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageChange }) {
@@ -153,7 +154,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           district: assignedDistrict,
           areaType: match.areaType
         }));
-        setPincodeDetectedInfo(`⚡ ${assignedDistrict}, ${match.state}`);
+        setPincodeDetectedInfo(`${assignedDistrict}, ${match.state}`);
       } else {
         setPincodeDetectedInfo(null);
       }
@@ -214,7 +215,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         setGpsStatus({
           granted: true,
           coords: { lat, lng },
-          message: `📍 ${detectedDistrict}, ${detectedState} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`
+          message: `${detectedDistrict}, ${detectedState} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`
         });
         setLocationMode('gps_permission');
       },
@@ -222,8 +223,8 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         setGpsStatus({
           granted: false,
           message: currentLang === 'en-IN' 
-            ? '❌ Permission Denied. Please select manually from the dropdowns below.' 
-            : '❌ अनुमति अस्वीकृत (Permission Denied). कृपया नीचे मैन्युअल रूप से चुनें।'
+            ? 'Permission Denied. Please select manually from the dropdowns below.' 
+            : 'अनुमति अस्वीकृत (Permission Denied). कृपया नीचे मैन्युअल रूप से चुनें।'
         });
         setLocationMode('manual');
       },
@@ -250,20 +251,20 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     setErrors({});
     setAlertInfo({ 
       type: 'success', 
-      text: '🇮🇳 DigiLocker: All credentials auto-filled!' 
+      text: 'DigiLocker: All credentials auto-filled' 
     });
   };
 
   const handleSendOtp = () => {
     const mobErr = VALIDATION_RULES.mobile(loginIdentifier);
     if (mobErr) {
-      setAlertInfo({ type: 'error', text: `⚠️ ${t.requiredErr} (10 digits)` });
+      setAlertInfo({ type: 'error', text: `${t.requiredErr} (10 digits)` });
       return;
     }
     setOtpSent(true);
     setAlertInfo({ 
       type: 'info', 
-      text: '📲 OTP sent: [9 4 2 1 0 8]' 
+      text: 'OTP sent: [9 4 2 1 0 8]' 
     });
   };
 
@@ -296,7 +297,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       isLoggedIn: true
     };
 
-    setAlertInfo({ type: 'success', text: '✅ Verified! Redirecting...' });
+    setAlertInfo({ type: 'success', text: 'Verified! Redirecting...' });
     setTimeout(() => {
       onLoginSuccess(citizen);
     }, 500);
@@ -351,7 +352,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     if (hasAnyError) {
       setAlertInfo({ 
         type: 'error', 
-        text: `⚠️ ${t.requiredErr}: Please fill all required fields marked with red star (*)` 
+        text: `${t.requiredErr}: Please fill all required fields marked with *` 
       });
       return;
     }
@@ -375,14 +376,14 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       isLoggedIn: true
     };
 
-    setAlertInfo({ type: 'success', text: '🎉 Account Created!' });
+    setAlertInfo({ type: 'success', text: 'Account Created Successfully!' });
     setTimeout(() => {
       onLoginSuccess(citizen);
     }, 500);
   };
 
   const handleDemoSelect = (demoCitizen) => {
-    setAlertInfo({ type: 'success', text: `✨ Profile: ${demoCitizen.fullName}` });
+    setAlertInfo({ type: 'success', text: `Profile: ${demoCitizen.fullName}` });
     setTimeout(() => {
       onLoginSuccess({ ...demoCitizen, language: currentLang, isLoggedIn: true });
     }, 350);
@@ -395,9 +396,10 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     return (
       <div className="login-card lang-screen-card">
         <div className="login-header">
+          <GovernmentEmblem size={48} />
           <div className="emblem-row">
-            <span className="national-badge">🇮🇳 JanDhwani</span>
-            <span className="brics-badge">🌐 Bhashini AI</span>
+            <span className="national-badge">JanDhwani</span>
+            <span className="brics-badge">Bhashini AI</span>
           </div>
           <h1 className="login-title">JanDhwani • जनध्वनि</h1>
           <p className="login-tagline">Select Your Language • अपनी भाषा चुनें</p>
@@ -406,7 +408,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         {/* Minimal Search & Region Filters */}
         <div className="lang-controls">
           <div className="lang-search-wrapper">
-            <span className="search-icon">🔍</span>
             <input 
               type="text"
               className="lang-search-input"
@@ -479,15 +480,16 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     <div className="login-card">
       {/* Top Header with Active Language Indicator */}
       <div className="login-header">
+        <GovernmentEmblem size={48} />
         <div className="header-top-bar">
-          <span className="national-badge">🇮🇳 JanDhwani DPI</span>
+          <span className="national-badge">JanDhwani DPI</span>
           <button 
             type="button" 
             className="change-lang-btn"
             onClick={() => setHasSelectedLanguage(false)}
             title="Switch Language"
           >
-            🌐 {ALL_LANGUAGES.find(l => l.code === currentLang)?.native || 'Language'} ({t.changeLang})
+            {ALL_LANGUAGES.find(l => l.code === currentLang)?.native || 'Language'} ({t.changeLang})
           </button>
         </div>
 
@@ -498,7 +500,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       {/* 1-Click Judge & Hackathon Demo Profiles */}
       <div className="demo-box">
         <div className="demo-header">
-          <span className="demo-icon">⚡</span>
           <strong>{t.demoTitle}</strong>
         </div>
         <div className="demo-chips">
@@ -510,7 +511,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               onClick={() => handleDemoSelect(demo)}
               title={`Load profile for ${demo.fullName}`}
             >
-              👤 {demo.fullName.split(' ')[0]} ({demo.state.split(' ')[0]})
+              {demo.fullName.split(' ')[0]} ({demo.state.split(' ')[0]})
             </button>
           ))}
         </div>
@@ -548,14 +549,14 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           {/* 1-Click DigiLocker Fast-Fill Helper */}
           <div className="digilocker-helper-banner">
             <div className="digi-text">
-              <strong>🇮🇳 {t.fastFillText}</strong>
+              <strong>{t.fastFillText}</strong>
             </div>
             <button 
               type="button" 
               className="digi-fast-btn"
               onClick={handleDigiLockerFastFill}
             >
-              {t.fastFillBtn || '⚡ Fast Fill'}
+              {t.fastFillBtn || 'Fast Fill'}
             </button>
           </div>
 
@@ -568,7 +569,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           <div className="form-group">
             <label>{t.fullName} <span className="req">*</span></label>
             <div className="input-wrapper">
-              <span className="input-icon">👤</span>
               <input 
                 type="text"
                 className={`input-field ${touched.fullName && errors.fullName ? 'input-error' : ''}`}
@@ -580,7 +580,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               />
             </div>
             {touched.fullName && errors.fullName && (
-              <span className="error-text">⚠️ {errors.fullName}</span>
+              <span className="error-text">{errors.fullName}</span>
             )}
           </div>
 
@@ -589,7 +589,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <div className="form-group">
               <label>{t.mobile} <span className="req">*</span></label>
               <div className="input-wrapper">
-                <span className="input-icon">📱</span>
                 <input 
                   type="tel"
                   className={`input-field ${touched.mobile && errors.mobile ? 'input-error' : ''}`}
@@ -602,7 +601,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 />
               </div>
               {touched.mobile && errors.mobile && (
-                <span className="error-text">⚠️ {errors.mobile}</span>
+                <span className="error-text">{errors.mobile}</span>
               )}
             </div>
 
@@ -610,7 +609,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <div className="form-group">
               <label>{t.email}</label>
               <div className="input-wrapper">
-                <span className="input-icon">✉️</span>
                 <input 
                   type="email"
                   className={`input-field ${touched.email && errors.email ? 'input-error' : ''}`}
@@ -624,7 +622,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 />
               </div>
               {touched.email && errors.email && (
-                <span className="error-text">⚠️ {errors.email}</span>
+                <span className="error-text">{errors.email}</span>
               )}
             </div>
           </div>
@@ -634,10 +632,10 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <span>{t.sec2}</span>
           </div>
 
-          {/* Swiggy / Flipkart Style Location Mode Switcher */}
+          {/* Location Mode Switcher */}
           <div className="location-permission-card">
             <div className="loc-permission-header">
-              <strong>📍 {t.locModeTitle}</strong>
+              <strong>{t.locModeTitle}</strong>
             </div>
             
             <div className="loc-permission-actions">
@@ -670,7 +668,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <div className="form-group">
               <label>{t.pincode} <span className="req">*</span></label>
               <div className="input-wrapper">
-                <span className="input-icon">📮</span>
                 <input 
                   type="text"
                   className={`input-field pincode-highlight ${touched.pincode && errors.pincode ? 'input-error' : ''}`}
@@ -683,7 +680,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 />
               </div>
               {touched.pincode && errors.pincode && (
-                <span className="error-text">⚠️ {errors.pincode}</span>
+                <span className="error-text">{errors.pincode}</span>
               )}
             </div>
 
@@ -756,7 +753,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 ))}
               </select>
               {touched.district && errors.district && (
-                <span className="error-text">⚠️ {errors.district}</span>
+                <span className="error-text">{errors.district}</span>
               )}
             </div>
           </div>
@@ -770,14 +767,14 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 className={`area-btn ${regData.areaType === 'rural' ? 'active' : ''}`}
                 onClick={() => setRegData({ ...regData, areaType: 'rural' })}
               >
-                🌾 {t.rural}
+                {t.rural}
               </button>
               <button
                 type="button"
                 className={`area-btn ${regData.areaType === 'urban' ? 'active' : ''}`}
                 onClick={() => setRegData({ ...regData, areaType: 'urban' })}
               >
-                🏙️ {t.urban}
+                {t.urban}
               </button>
             </div>
           </div>
@@ -801,7 +798,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                     required
                   />
                   {touched.tehsil && errors.tehsil && (
-                    <span className="error-text">⚠️ {errors.tehsil}</span>
+                    <span className="error-text">{errors.tehsil}</span>
                   )}
                 </div>
                 <div className="form-group">
@@ -819,7 +816,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                     required
                   />
                   {touched.panchayatOrWard && errors.panchayatOrWard && (
-                    <span className="error-text">⚠️ {errors.panchayatOrWard}</span>
+                    <span className="error-text">{errors.panchayatOrWard}</span>
                   )}
                 </div>
               </>
@@ -840,7 +837,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                     required
                   />
                   {touched.tehsil && errors.tehsil && (
-                    <span className="error-text">⚠️ {errors.tehsil}</span>
+                    <span className="error-text">{errors.tehsil}</span>
                   )}
                 </div>
                 <div className="form-group">
@@ -858,7 +855,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                     required
                   />
                   {touched.panchayatOrWard && errors.panchayatOrWard && (
-                    <span className="error-text">⚠️ {errors.panchayatOrWard}</span>
+                    <span className="error-text">{errors.panchayatOrWard}</span>
                   )}
                 </div>
               </>
@@ -876,7 +873,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               <input 
                 type="password"
                 className={`input-field ${touched.password && errors.password ? 'input-error' : ''}`}
-                placeholder="Password (Min. 6)"
+                placeholder="Password (Min. 6 chars)"
                 value={regData.password}
                 onChange={(e) => {
                   setRegData({ ...regData, password: e.target.value });
@@ -886,7 +883,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 required
               />
               {touched.password && errors.password && (
-                <span className="error-text">⚠️ {errors.password}</span>
+                <span className="error-text">{errors.password}</span>
               )}
             </div>
 
@@ -895,7 +892,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               <input 
                 type="password"
                 className={`input-field ${touched.confirmPassword && errors.confirmPassword ? 'input-error' : ''}`}
-                placeholder="Confirm"
+                placeholder="Confirm Password"
                 value={regData.confirmPassword}
                 onChange={(e) => {
                   setRegData({ ...regData, confirmPassword: e.target.value });
@@ -905,7 +902,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 required
               />
               {touched.confirmPassword && errors.confirmPassword && (
-                <span className="error-text">⚠️ {errors.confirmPassword}</span>
+                <span className="error-text">{errors.confirmPassword}</span>
               )}
             </div>
           </div>
@@ -925,21 +922,20 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               className={`method-btn ${loginMethod === 'otp' ? 'selected' : ''}`}
               onClick={() => setLoginMethod('otp')}
             >
-              📲 OTP Login
+              OTP Login
             </button>
             <button
               type="button"
               className={`method-btn ${loginMethod === 'password' ? 'selected' : ''}`}
               onClick={() => setLoginMethod('password')}
             >
-              🔒 Password
+              Password Login
             </button>
           </div>
 
           <div className="form-group">
             <label>{t.mobile} <span className="req">*</span></label>
             <div className="input-wrapper">
-              <span className="input-icon">🆔</span>
               <input 
                 type="text"
                 className="input-field"
@@ -956,7 +952,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               <label>OTP <span className="req">*</span></label>
               <div className="otp-row">
                 <div className="input-wrapper" style={{ flex: 1 }}>
-                  <span className="input-icon">💬</span>
                   <input 
                     type="text"
                     className="input-field"
@@ -972,7 +967,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                   className="otp-btn" 
                   onClick={handleSendOtp}
                 >
-                  {otpSent ? 'Resend' : 'Send OTP'}
+                  {otpSent ? 'Resend OTP' : 'Send OTP'}
                 </button>
               </div>
             </div>
@@ -980,7 +975,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <div className="form-group">
               <label>{t.createPass} <span className="req">*</span></label>
               <div className="input-wrapper">
-                <span className="input-icon">🔒</span>
                 <input 
                   type="password"
                   className="input-field"
@@ -1018,3 +1012,4 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
 }
 
 export default Login;
+
