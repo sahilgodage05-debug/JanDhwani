@@ -5,9 +5,9 @@ import {
   STATES_AND_DISTRICTS, 
   PINCODE_MAP, 
   EXPANDED_DEMO_CITIZENS 
-} from '../indiaData';
-import { VALIDATION_RULES } from '../validators';
-import { UI_STRINGS } from '../translations';
+} from '../../indiaData';
+import { VALIDATION_RULES } from '../../validators';
+import { UI_STRINGS } from '../../translations';
 import GovernmentEmblem from '../GovernmentEmblem';
 import './Login.css';
 
