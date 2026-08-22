@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import Login from './components/login/Login';
 import DigitalTwinMap from './components/DigitalTwinMap';
 import ResolvedArchive from './components/ResolvedArchive';
-import GovernmentEmblem from './components/GovernmentEmblem';
 import { ALL_LANGUAGES, STATES_AND_DISTRICTS, DEFAULT_HOTSPOTS, INITIAL_RESOLVED_RECORDS } from './indiaData';
 import { UI_STRINGS } from './translations';
 import './App.css';
@@ -572,188 +571,91 @@ function App() {
     setIsSubmitting(true);
     const locInfo = getActiveLocationSummary();
 
-    // Simulate Step 2 (Google Gemini AI) & Step 3 (Firebase Sync to 3D Digital Twin)
-    setTimeout(() => {
+    // ACTUAL BACKEND INTEGRATION
+    const formData = new FormData();
+    if (text) formData.append('text', text);
+    
+    // We send basic location details to the backend
+    const currentDistrict = customLocation.district || currentUser?.district || 'Pune';
+    formData.append('district', currentDistrict);
+    
+    // Coordinates
+    const lat = gpsCoords ? gpsCoords.lat : 18.5793;
+    const lng = gpsCoords ? gpsCoords.lng : 73.9814;
+    formData.append('lat', lat);
+    formData.append('lng', lng);
+    
+    fetch('http://localhost:8000/api/complaints', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Backend failed to process complaint.');
+      return res.json();
+    })
+    .then(data => {
       setIsSubmitting(false);
-      const isRural = currentUser?.areaType === 'rural' || locationSource === 'registered';
-      const lower = text.toLowerCase();
       
-      let dept = "Public Works Department (PWD / लोक निर्माण विभाग)";
-      let deptKey = "pwd";
-      let coreDefect = "Civic Infrastructure Defect";
-      let affectedScope = "Local ward residents and transit zone";
-      let riskLevel = "Public inconvenience and civic hazard";
-      let duration = "Persistent issue reported by citizens";
-      let actionRequired = "Physical inspection and administrative work order dispatch";
-      let oneLineSummary = "Civic infrastructure grievance requiring prompt administrative intervention.";
-      let urgencyBase = 7.5;
-
-      // 1. GARBAGE, SOLID WASTE, SANITATION & SEWAGE (स्वच्छ भारत / घनकचरा)
-      if (
-        lower.includes('garbage') || lower.includes('trash') || lower.includes('waste') || 
-        lower.includes('dump') || lower.includes('litter') || lower.includes('debris') || 
-        lower.includes('smell') || lower.includes('stink') || lower.includes('sanitation') || 
-        lower.includes('clean') || lower.includes('sewer') || lower.includes('sewage') || 
-        lower.includes('drain') || lower.includes('drainage') || lower.includes('gutter') || 
-        lower.includes('dustbin') || lower.includes('कचरा') || lower.includes('कूड़ा') || 
-        lower.includes('गंदगी') || lower.includes('सफाई') || lower.includes('बदबू') || 
-        lower.includes('घाण') || lower.includes('दुर्गंधी') || lower.includes('गटार') || 
-        lower.includes('सांडपाणी') || lower.includes('कुப்பை') || lower.includes('చెత్త')
-      ) {
-        dept = "Municipal Solid Waste Management & Sanitation Dept (स्वच्छ भारत / घनकचरा व्यवस्थापन)";
-        deptKey = "sanitation_swm";
-        coreDefect = "Uncollected Solid Waste Accumulation & Open Garbage Dumping";
-        affectedScope = "Local residential colony, pedestrian walkways & public market";
-        riskLevel = "Vector-borne disease outbreak risk (Dengue/Malaria), toxic stench & civic biohazard";
-        duration = lower.includes('day') || lower.includes('दिन') || lower.includes('दिवस') ? "Unattended waste piling for multiple days" : "Continuous uncollected garbage pileup";
-        actionRequired = "Immediate dispatch of solid waste compactor vehicle, manual sweeping & disinfectant bleaching spray";
-        oneLineSummary = "Severe unmanaged solid waste accumulation and garbage dumping creating critical public health and sanitation hazards.";
-        urgencyBase = 8.6;
-      }
-      // 2. WATER SUPPLY & PIPELINES (जल शक्ति)
-      else if (
-        lower.includes('water') || lower.includes('pipeline') || lower.includes('tank') || 
-        lower.includes('leak') || lower.includes('tap') || lower.includes('drinking') || 
-        lower.includes('borewell') || lower.includes('पानी') || lower.includes('पाणी') || 
-        lower.includes('जल') || lower.includes('தண்ணீர்') || lower.includes('குழாய்') || 
-        lower.includes('नीरू')
-      ) {
-        dept = "Ministry of Jal Shakti (जल शक्ति) & Water Supply Board";
-        deptKey = "jal_shakti";
-        coreDefect = "High-Pressure Drinking Water Conduit Rupture & Supply Disruption";
-        affectedScope = "14,000+ local households & adjoining neighborhood sectors";
-        riskLevel = "Severe potable drinking water crisis & hydraulic contamination risk";
-        duration = lower.includes('4') || lower.includes('चार') ? "4 consecutive days without potable supply" : "Extended multi-day drinking water outage";
-        actionRequired = "Immediate deployment of Jal Shakti hydraulic repair team & emergency drinking water tankers";
-        oneLineSummary = "Critical drinking water conduit breach disrupting essential municipal water supply to local residents.";
-        urgencyBase = 8.9;
-      }
-      // 3. ELECTRICITY & POWER (ऊर्जा व वीज)
-      else if (
-        lower.includes('power') || lower.includes('electricity') || lower.includes('light') || 
-        lower.includes('transformer') || lower.includes('voltage') || lower.includes('blackout') || 
-        lower.includes('wire') || lower.includes('pole') || lower.includes('बिजली') || 
-        lower.includes('विद्युत') || lower.includes('वीज') || lower.includes('करंट') || 
-        lower.includes('மின்சாரம்')
-      ) {
-        dept = "Ministry of Power & State Electricity Distribution (ऊर्जा एवं विद्युत मंडल)";
-        deptKey = "power";
-        coreDefect = "Substation High-Voltage Transformer Overload & Feeder Tripping";
-        affectedScope = "Community micro-grid, local healthcare units & street illumination";
-        riskLevel = "Blackout risk, hospital medical equipment power cutoff & nighttime security hazard";
-        duration = "Recurrent uncontrolled load-shedding and voltage fluctuations";
-        actionRequired = "Immediate mobile substation deployment, transformer inspection & circuit breaker replacement";
-        oneLineSummary = "Critical power substation transformer failure and low voltage causing extensive grid downtime.";
-        urgencyBase = 8.7;
-      }
-      // 4. ROADS, BRIDGES & HIGHWAYS (लोक निर्माण विभाग / PWD)
-      else if (
-        lower.includes('road') || lower.includes('pothole') || lower.includes('bridge') || 
-        lower.includes('highway') || lower.includes('asphalt') || lower.includes('pavement') || 
-        lower.includes('traffic') || lower.includes('सड़क') || lower.includes('रस्ता') || 
-        lower.includes('पुल') || lower.includes('खड्डा') || lower.includes('मार्ग') || 
-        lower.includes('சாலை')
-      ) {
-        dept = "Public Works Department (PWD / NHAI / लोक निर्माण विभाग)";
-        deptKey = "pwd";
-        coreDefect = "Arterial Highway Structural Shear Crack & Road Cavity Formation";
-        affectedScope = "Inter-district vehicular transit corridor & emergency ambulance routes";
-        riskLevel = "Severe vehicular collision hazard, tire blowout danger & structural collapse risk";
-        duration = "Progressive degradation with heavy vehicular load";
-        actionRequired = "Traffic diversion protocol, rapid asphalt resurfacing & structural reinforcement by Executive Engineer";
-        oneLineSummary = "Severe arterial road / highway structural fissure posing critical collision and transit hazards.";
-        urgencyBase = 8.5;
-      }
-      // 5. HEALTHCARE & MEDICINES (स्वास्थ्य व औषध)
-      else if (
-        lower.includes('medicine') || lower.includes('drug') || lower.includes('hospital') || 
-        lower.includes('doctor') || lower.includes('clinic') || lower.includes('nurse') || 
-        lower.includes('ambulance') || lower.includes('food') || lower.includes('दवा') || 
-        lower.includes('औषध') || lower.includes('रुग्णालय') || lower.includes('इस्पताल') || 
-        lower.includes('மருந்து')
-      ) {
-        dept = "Ministry of Health & Family Welfare (स्वास्थ्य एवं परिवार कल्याण)";
-        deptKey = "health_fda";
-        coreDefect = "Substandard Pharmaceutical Quality Compliance Breach & Healthcare Deficit";
-        affectedScope = "Primary Health Centre patient intake & retail consumer network";
-        riskLevel = "Acute public health threat, therapeutic failure & clinical complications";
-        duration = "Active distribution / unaddressed clinic deficiency";
-        actionRequired = "Immediate batch quarantine, medical audit & drug inspector seizure notice";
-        oneLineSummary = "Critical medicine quality compliance breach and public health risk reported for physical verification.";
-        urgencyBase = 9.2;
-      }
-      // 6. GENERAL CIVIC / SMART FALLBACK BASED ON EXACT CITIZEN TEXT
-      else {
-        dept = "District Municipal Administration & Grievance Cell (जिल्हा प्रशासन)";
-        deptKey = "pwd";
-        coreDefect = text.length > 50 ? text.substring(0, 48) + '...' : text;
-        affectedScope = "Local jurisdiction & surrounding public zone";
-        riskLevel = "Public distress and municipal service shortfall";
-        duration = "Reported unresolved citizen issue";
-        actionRequired = "District Magistrate / Municipal Officer zonal review and field inspection";
-        oneLineSummary = `Citizen reported ${text.length > 60 ? text.substring(0, 58) + '...' : text} requiring administrative dispatch.`;
-        urgencyBase = 7.8;
-      }
-
-      const finalUrgency = isRural ? Math.min(9.8, urgencyBase + 1.2).toFixed(1) : urgencyBase.toFixed(1);
-
-      const newTicketId = 'JD-' + Math.floor(100000 + Math.random() * 900000);
       const newSpot = {
-        id: newTicketId,
-        title: coreDefect || (oneLineSummary.length > 40 ? oneLineSummary.substring(0, 38) + '...' : oneLineSummary),
-        summary: oneLineSummary,
-        department: dept,
-        deptKey: deptKey,
-        coreDefect: coreDefect,
-        affectedScope: affectedScope,
-        riskLevel: riskLevel,
-        duration: duration,
-        actionRequired: actionRequired,
+        id: data.id || 'TKT-' + Math.floor(Math.random()*10000),
+        title: data.summary,
+        summary: data.summary,
+        department: data.category || 'General Administration',
+        deptKey: 'gen',
+        coreDefect: data.category,
+        affectedScope: 'Local Community',
+        riskLevel: 'Moderate',
+        duration: 'Reported',
+        actionRequired: 'Review Required',
         location: locInfo.title,
         state: customLocation.state || currentUser?.state || 'Maharashtra',
-        district: customLocation.district || currentUser?.district || 'Pune',
-        tehsil: currentUser?.tehsil || 'Haveli Taluka',
-        wardOrPanchayat: currentUser?.panchayatOrWard || 'Wagholi Panchayat',
-        landmark: customLocation.landmark || 'Incident Location',
-        coords: gpsCoords ? { x: -0.5, z: 0.5, lat: gpsCoords.lat, lng: gpsCoords.lng } : { x: -0.55, z: 0.55, lat: 18.5793, lng: 73.9814 },
-        urgency: parseFloat(finalUrgency),
-        baseUrgency: urgencyBase,
-        povertyBoost: isRural ? '+1.4 (Rural Boost)' : '+0.5 (Standard)',
-        areaType: isRural ? 'Rural (Gram Panchayat)' : 'Urban (Municipal Ward)',
+        district: data.district,
+        tehsil: currentUser?.tehsil || '',
+        wardOrPanchayat: currentUser?.panchayatOrWard || '',
+        landmark: customLocation.landmark || '',
+        coords: { x: -0.5, z: 0.5, lat: data.lat, lng: data.lng },
+        urgency: data.final_priority_score || 5,
+        baseUrgency: data.base_severity || 5,
+        povertyBoost: '+0.0',
+        areaType: currentUser?.areaType === 'rural' ? 'Rural' : 'Urban',
         routing: locInfo.routing,
-        citizen: currentUser ? `${currentUser.fullName} (UID: ${currentUser.mobile})` : 'Verified Resident',
+        citizen: currentUser ? ${currentUser.fullName} : 'Citizen',
         imageVerified: imageAiAnalysis?.verified || false,
-        imageConfidence: imageAiAnalysis?.matchScore || 95,
-        status: 'Field Team Dispatched',
-        timestamp: 'Just now (Live)',
+        imageConfidence: imageAiAnalysis?.matchScore || null,
+        status: 'Reported',
+        timestamp: 'Just now',
         country: 'India'
       };
 
       setActiveComplaints(prev => [newSpot, ...prev]);
 
       setSubmissionResult({
-        ticketId: newTicketId,
-        translatedText: oneLineSummary,
-        department: dept,
-        deptKey: deptKey,
-        coreDefect: coreDefect,
-        affectedScope: affectedScope,
-        riskLevel: riskLevel,
-        duration: duration,
-        actionRequired: actionRequired,
+        ticketId: newSpot.id,
+        translatedText: data.summary,
+        department: data.category,
+        deptKey: 'gen',
+        coreDefect: data.category,
+        affectedScope: 'Local',
+        riskLevel: 'Moderate',
+        duration: 'Reported',
+        actionRequired: 'Review',
         confirmedLocation: locInfo.title,
         routingUnit: locInfo.routing,
-        severityScore: isRural ? `${finalUrgency}/10 (High Priority - Rural Boost)` : `${finalUrgency}/10 (Standard Severity)`,
-        numericUrgency: parseFloat(finalUrgency),
+        severityScore: ${data.final_priority_score || 5}/10 (Calculated),
+        numericUrgency: data.final_priority_score || 5,
         imageVerified: imageAiAnalysis?.verified || false,
         imageScore: imageAiAnalysis?.matchScore || null,
         imageDetails: imageAiAnalysis?.category || null,
         syncedTo3DMap: true,
         spotObject: newSpot
       });
-    }, 1200);
-  };
-
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Error submitting grievance to backend: ' + err.message);
+      setIsSubmitting(false);
+    });
+};
   const activeLoc = getActiveLocationSummary();
   const availableDistricts = STATES_AND_DISTRICTS[customLocation.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
@@ -1348,7 +1250,7 @@ function App() {
           )}
           </div>
           <div className="maps-container">
-            <Map3D onMarkerClick={(complaint) => setSelected3DMarkerLocation(complaint.title + ', ' + complaint.location)} />
+            <Map3D onMarkerClick={(complaint) => setSelected3DMarkerLocation(complaint.coords && complaint.coords.lat && complaint.coords.lng ? `${complaint.coords.lat},${complaint.coords.lng}` : `${complaint.title}, ${complaint.location}`)} />
             <div className="google-map-embed-wrapper" style={{background: '#fff', borderRadius: '20px', padding: '10px', boxShadow: '0 15px 35px rgba(0,0,0,0.1)'}}>
               <div className="map-embed-header" style={{marginBottom: '10px', display: 'flex', justifyContent: 'space-between', padding: '0 10px'}}>
                 <span style={{color: '#3e2723', fontWeight: 'bold'}}>Real-time Satellite Mapping (Syncs with 3D Map)</span>
