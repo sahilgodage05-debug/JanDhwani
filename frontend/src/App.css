@@ -1720,20 +1720,23 @@ textarea:focus {
 }
 
 .app-main-bg .card {
-  background: transparent;
-  backdrop-filter: none;
-  box-shadow: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 22px;
 }
 
-/* Ensure text is readable on background */
+/* Restore clean text colors for the frosted glass card */
 .app-main-bg .form-card label,
 .app-main-bg .form-card h2,
 .app-main-bg .form-card .title,
 .app-main-bg .form-card .subtitle,
 .app-main-bg .form-card span {
-  color: #fff;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.6);
+  color: var(--brown-900);
+  text-shadow: none;
+  font-weight: 700;
 }
 
 .maps-container {
