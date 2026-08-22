@@ -138,6 +138,17 @@
   font-weight: 700;
 }
 
+.routing-badge {
+  background: #efebe9;
+  border: 1px solid #d7ccc8;
+  color: #4e342e;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin: 6px 0;
+}
+
 .banner-note {
   display: block;
   font-size: 11px;

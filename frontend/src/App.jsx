@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import Login from './components/Login';
+import { SUPPORTED_LANGUAGES } from './translations';
 import './App.css';
 
 function App() {
@@ -20,8 +21,7 @@ function App() {
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
     if (user.language) {
-      const code = user.language.split(' ')[0];
-      setSelectedLanguage(code);
+      setSelectedLanguage(user.language);
     }
     setActiveTab('grievance');
   };
@@ -91,17 +91,21 @@ function App() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate Step 2 (Google Gemini 1.5 Flash AI Processing) & Step 3 (Firebase Real-time Sync)
+    // Simulate Step 2 (Google Gemini 1.5 Flash AI Processing) & Step 3 (Firebase Data Fusion + 3D Twin Sync)
     setTimeout(() => {
       setIsSubmitting(false);
+      const isRural = currentUser?.areaType === 'rural';
       setSubmissionResult({
         ticketId: 'JD-' + Math.floor(100000 + Math.random() * 900000),
-        translatedText: text.includes('water') || text.includes('पानी') 
-          ? "Critical water supply disruption & infrastructure failure reported." 
-          : "Infrastructure grievance reported requiring administrative intervention.",
-        department: text.includes('water') || text.includes('पानी') ? "Jal Shakti (जल शक्ति मंत्रालय)" : "Public Works Department (PWD)",
-        severityScore: currentUser?.areaType?.includes('Rural') ? '8.5/10 (High Priority - Rural Boost)' : '7.2/10',
-        syncedTo3DMap: true
+        translatedText: text.includes('water') || text.includes('पानी') || text.includes('पाणी')
+          ? "Critical water infrastructure breakdown & supply failure reported in local jurisdiction." 
+          : "Essential public infrastructure grievance logged requiring immediate department intervention.",
+        department: text.includes('water') || text.includes('पानी') || text.includes('पाणी') 
+          ? "Ministry of Jal Shakti (जल शक्ति) / State Water Board" 
+          : "Public Works Department (PWD / लोक निर्माण विभाग)",
+        routingUnit: currentUser?.officialRouting || 'District Collector & Municipal Commissioner',
+        severityScore: isRural ? '8.8/10 (High Priority - Rural Multiplier Boost)' : '7.4/10 (Standard Severity)',
+        jurisdictionSummary: `${currentUser?.state || 'Maharashtra'} • ${currentUser?.district || 'District'} • PIN: ${currentUser?.pincode || '412207'}`
       });
     }, 1200);
   };
@@ -116,7 +120,7 @@ function App() {
             className={`nav-btn ${activeTab === 'login' ? 'active' : ''}`}
             onClick={() => setActiveTab('login')}
           >
-            {currentUser ? '👤 Citizen ID' : '🔐 Citizen Portal'}
+            {currentUser ? '👤 Citizen Digital ID' : '🌐 Citizen Portal'}
           </button>
           <button 
             type="button"
@@ -129,7 +133,7 @@ function App() {
 
         {currentUser ? (
           <div className="user-status-pill">
-            <span>👤 {currentUser.fullName || currentUser.name}</span>
+            <span>👤 {currentUser.fullName?.split(' ')[0]}</span>
             <button 
               type="button" 
               className="logout-link-btn" 
@@ -154,20 +158,27 @@ function App() {
         <div className="card">
           <div className="card-header">
             <h1 className="title">JanDhwani (जनध्वनि)</h1>
-            <p className="subtitle">नागरिक शिकायत पोर्टल • Citizen Grievance Gateway (Step 1)</p>
+            <p className="subtitle">नागरिक शिकायत पोर्टल • Step 1: Citizen Grievance Gateway</p>
           </div>
 
           {/* Citizen Attached Demographics Banner */}
           {currentUser && (
             <div className="attached-profile-banner">
               <div className="banner-title">
-                <span>🛡️ Verified Citizen Credential Auto-Attached:</span>
+                <span>🛡️ Verified Citizen Credential Auto-Attached to Ticket:</span>
               </div>
               <div className="banner-grid">
                 <div><strong>Citizen:</strong> {currentUser.fullName}</div>
-                <div><strong>State:</strong> {currentUser.state}</div>
-                <div><strong>District:</strong> {currentUser.district || 'Purnia'}</div>
-                <div><strong>Area:</strong> <span className="highlight-tag">{currentUser.areaType || 'Rural'}</span></div>
+                <div><strong>Mobile (UID):</strong> {currentUser.mobile}</div>
+                <div><strong>State & UT:</strong> {currentUser.state}</div>
+                <div><strong>District (DM):</strong> {currentUser.district}</div>
+                <div><strong>Area Type:</strong> <span className="highlight-tag">{currentUser.areaType === 'rural' ? 'Rural (Gram Panchayat)' : 'Urban (Municipal Ward)'}</span></div>
+                <div><strong>Sub-District:</strong> {currentUser.tehsil || 'Block / Zone'}</div>
+                <div><strong>Ward/Panchayat:</strong> {currentUser.panchayatOrWard || 'Local Body'}</div>
+                <div><strong>Pincode:</strong> 📮 {currentUser.pincode}</div>
+              </div>
+              <div className="routing-badge">
+                🎯 <strong>Official Routing:</strong> {currentUser.officialRouting || 'BDO / DM Jurisdiction'}
               </div>
               <small className="banner-note">
                 💡 Automatically feeds poverty & infrastructure weighting into <strong>Step 3 (3D Digital Twin Map)</strong>
@@ -182,14 +193,16 @@ function App() {
               <p className="ticket-number">Ticket ID: <strong>{submissionResult.ticketId}</strong></p>
               
               <div className="ai-summary-card">
-                <h3>🤖 Step 2: Google Gemini AI Processing</h3>
-                <p><strong>Classified Department:</strong> {submissionResult.department}</p>
-                <p><strong>English Translation:</strong> {submissionResult.translatedText}</p>
+                <h3>🤖 Step 2: Google Gemini 1.5 Flash AI Processing</h3>
+                <p><strong>Department:</strong> {submissionResult.department}</p>
+                <p><strong>Official Routing:</strong> {submissionResult.routingUnit}</p>
+                <p><strong>Jurisdiction:</strong> {submissionResult.jurisdictionSummary}</p>
+                <p><strong>Auto-Translation:</strong> {submissionResult.translatedText}</p>
                 <p><strong>Urgency Score (1-10):</strong> <span className="score-badge">{submissionResult.severityScore}</span></p>
               </div>
 
               <div className="firebase-status">
-                <span>📡 Step 3: Synced to Firebase → Glowing 3D Beacon Generated on Minister's Map</span>
+                <span>📡 Step 3: Synced to Firebase → Glowing 3D Beacon Rises on Minister's Map</span>
               </div>
 
               <button 
@@ -209,31 +222,27 @@ function App() {
             <form onSubmit={handleSubmit} className="form">
               {/* Language Selector */}
               <div className="form-group">
-                <label>शिकायत की भाषा (Input Language for Speech & Text)</label>
+                <label>शिकायत इनपुट भाषा (Voice & Speech Recognition Language)</label>
                 <select 
                   className="input-field select-field"
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
                 >
-                  <option value="hi-IN">हिंदी (Hindi / Bhojpuri)</option>
-                  <option value="en-IN">English (Indian)</option>
-                  <option value="ta-IN">தமிழ் (Tamil)</option>
-                  <option value="te-IN">తెలుగు (Telugu)</option>
-                  <option value="bn-IN">বাংলা (Bengali)</option>
-                  <option value="mr-IN">मराठी (Marathi)</option>
-                  <option value="gu-IN">ગુજરાતી (Gujarati)</option>
-                  <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
-                  <option value="pt-BR">Português (Brazil BRICS Demo)</option>
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <option key={lang.code} value={lang.code}>
+                      {lang.native} ({lang.name})
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Grievance Text Area with HTML5 Speech-to-Text */}
               <div className="form-group">
-                <label>आपकी शिकायत / मांग (Your Grievance / Demand) <span className="req">*</span></label>
+                <label>आपकी शिकायत / मांग (Voice or Text Grievance) <span className="req">*</span></label>
                 <div className="textarea-container">
                   <textarea 
                     rows="5" 
-                    placeholder="अपनी समस्या यहाँ लिखें या माइक बटन दबाकर बोलें... (e.g., 'हमारे गांव में पानी की टंकी टूट गई है')"
+                    placeholder="अपनी समस्या यहाँ लिखें या माइक बटन दबाकर बोलें... (e.g. 'आमच्या गावात पिण्याच्या पाण्याची पाईपलाईन फुटली आहे')"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     required
@@ -251,7 +260,7 @@ function App() {
 
               <div className="action-buttons">
                 <button type="button" className="action-btn" onClick={fetchLocation}>
-                  📍 {location ? 'GPS प्राप्त (Lat/Lng Attached)' : 'Fetch GPS Location'}
+                  📍 {location ? 'GPS प्राप्त (Lat/Lng Attached)' : 'Fetch GPS Coordinates'}
                 </button>
                 
                 <label className="action-btn file-upload">
