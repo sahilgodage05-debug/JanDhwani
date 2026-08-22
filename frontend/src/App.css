@@ -145,7 +145,7 @@ body, html {
 .card {
   flex: 1;
   width: 100%;
-  max-width: 700px;
+  max-width: 1400px;
   background: #ffffff;
   border-radius: 22px;
   padding: 30px 32px;
@@ -1764,4 +1764,33 @@ textarea:focus {
 .app-main-bg .portal-nav {
   background: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(8px);
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.submit-btn {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+}
+
+/* Horizontal layout overrides */
+.form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Make full-width elements */
+.form > .form-group:first-child {
+  grid-column: 1 / -1; /* Language selector full width */
+}
+
+.submit-btn {
+  grid-column: 1 / -1;
+  margin-top: 20px;
 }
