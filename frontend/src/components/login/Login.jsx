@@ -394,25 +394,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         <p className="login-tagline">{t.portalSub}</p>
       </div>
 
-      {/* 1-Click Judge & Hackathon Demo Profiles */}
-      <div className="demo-box">
-        <div className="demo-header">
-          <strong>{t.demoTitle}</strong>
-        </div>
-        <div className="demo-chips">
-          {EXPANDED_DEMO_CITIZENS.map((demo, idx) => (
-            <button
-              key={idx}
-              type="button"
-              className="demo-chip"
-              onClick={() => handleDemoSelect(demo)}
-              title={`Load profile for ${demo.fullName}`}
-            >
-              {demo.fullName.split(' ')[0]} ({demo.state.split(' ')[0]})
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       {/* Tabs switcher: Sign Up vs Login */}
       <div className="auth-tabs">
@@ -533,36 +515,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <span>{t.sec2}</span>
           </div>
 
-          {/* Location Mode Switcher */}
-          <div className="location-permission-card">
-            <div className="loc-permission-header">
-              <strong>{t.locModeTitle}</strong>
-            </div>
-            
-            <div className="loc-permission-actions">
-              <button
-                type="button"
-                className={`loc-perm-btn ${locationMode === 'gps_permission' ? 'active-perm' : ''}`}
-                onClick={requestLocationPermission}
-              >
-                {t.shareGpsBtn}
-              </button>
-              
-              <button
-                type="button"
-                className={`loc-perm-btn ${locationMode === 'manual' ? 'active-perm' : ''}`}
-                onClick={() => setLocationMode('manual')}
-              >
-                {t.selectManualBtn}
-              </button>
-            </div>
 
-            {gpsStatus && (
-              <div className={`gps-status-banner ${gpsStatus.granted ? 'success-status' : 'warn-status'}`}>
-                {gpsStatus.message}
-              </div>
-            )}
-          </div>
 
           {/* Pincode & Language */}
           <div className="form-row">
@@ -659,26 +612,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             </div>
           </div>
 
-          {/* Area Type Toggle */}
-          <div className="form-group">
-            <label>{t.areaType} <span className="req">*</span></label>
-            <div className="area-type-toggle">
-              <button
-                type="button"
-                className={`area-btn ${regData.areaType === 'rural' ? 'active' : ''}`}
-                onClick={() => setRegData({ ...regData, areaType: 'rural' })}
-              >
-                {t.rural}
-              </button>
-              <button
-                type="button"
-                className={`area-btn ${regData.areaType === 'urban' ? 'active' : ''}`}
-                onClick={() => setRegData({ ...regData, areaType: 'urban' })}
-              >
-                {t.urban}
-              </button>
-            </div>
-          </div>
+
 
           {/* Dynamic Hierarchy based on Rural vs Urban */}
           <div className="form-row">
