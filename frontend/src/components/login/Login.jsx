@@ -13,10 +13,7 @@ import './Login.css';
 
 function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageChange }) {
   // Step 0: Language Gate state
-  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
-  const [currentLang, setCurrentLang] = useState(activeLanguage || 'en-IN');
-  const [languageSearch, setLanguageSearch] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('all');
+  const [currentLang, setCurrentLang] = useState(activeLanguage || 'hi-IN');
 
   // Auth view mode ('register' by default after language selection or 'login')
   const [authMode, setAuthMode] = useState('register');
@@ -57,32 +54,10 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
   // Helper for UI text based on chosen language (with fallback)
   const t = UI_STRINGS[currentLang] || UI_STRINGS['en-IN'] || UI_STRINGS['hi-IN'];
 
-  // Filter languages based on search and region
-  const filteredLanguages = useMemo(() => {
-    return ALL_LANGUAGES.filter(lang => {
-      const matchesSearch = 
-        lang.name.toLowerCase().includes(languageSearch.toLowerCase()) ||
-        lang.native.toLowerCase().includes(languageSearch.toLowerCase()) ||
-        lang.region.toLowerCase().includes(languageSearch.toLowerCase());
-
-      if (!matchesSearch) return false;
-
-      if (selectedRegion === 'all') return true;
-      if (selectedRegion === 'popular') return lang.popular;
-      if (selectedRegion === 'north') return lang.region.includes('North');
-      if (selectedRegion === 'south') return lang.region.includes('South');
-      if (selectedRegion === 'west') return lang.region.includes('West');
-      if (selectedRegion === 'east') return lang.region.includes('East') || lang.region.includes('North-East');
-      if (selectedRegion === 'brics') return lang.brics;
-      return true;
-    });
-  }, [languageSearch, selectedRegion]);
-
   // Handle Language Select
   const handleLanguageSelect = (langCode) => {
     setCurrentLang(langCode);
     setRegData(prev => ({ ...prev, preferredLanguage: langCode }));
-    setHasSelectedLanguage(true);
     if (onLanguageChange) {
       onLanguageChange(langCode);
     }
@@ -390,89 +365,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
   };
 
   /* =========================================================================
-     SCREEN 1: MINIMAL & CLEAN LANGUAGE SELECTION
-     ========================================================================= */
-  if (!hasSelectedLanguage) {
-    return (
-      <div className="login-card lang-screen-card">
-        <div className="login-header">
-          <GovernmentEmblem size={48} />
-          <div className="emblem-row">
-            <span className="national-badge">JanDhwani</span>
-            <span className="brics-badge">Bhashini AI</span>
-          </div>
-          <h1 className="login-title">JanDhwani • जनध्वनि</h1>
-          <p className="login-tagline">Select Your Language • अपनी भाषा चुनें</p>
-        </div>
-
-        {/* Minimal Search & Region Filters */}
-        <div className="lang-controls">
-          <div className="lang-search-wrapper">
-            <input 
-              type="text"
-              className="lang-search-input"
-              placeholder="Search language (English, Marathi, Hindi, தமிழ், বাংলা)..."
-              value={languageSearch}
-              onChange={(e) => setLanguageSearch(e.target.value)}
-            />
-            {languageSearch && (
-              <button 
-                type="button" 
-                className="clear-search-btn"
-                onClick={() => setLanguageSearch('')}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          <div className="region-filter-tabs">
-            {LANGUAGE_REGIONS.map((reg) => (
-              <button
-                key={reg.id}
-                type="button"
-                className={`region-tab ${selectedRegion === reg.id ? 'active' : ''}`}
-                onClick={() => setSelectedRegion(reg.id)}
-              >
-                {reg.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Minimal & Elegant Language Grid */}
-        <div className="language-grid minimal-lang-grid">
-          {filteredLanguages.map((lang) => (
-            <button
-              key={lang.code}
-              type="button"
-              className={`lang-card-minimal ${lang.code === currentLang ? 'active-lang' : ''}`}
-              onClick={() => handleLanguageSelect(lang.code)}
-            >
-              <span className="lang-native-minimal">{lang.native}</span>
-              <span className="lang-sub-minimal">{lang.name}</span>
-            </button>
-          ))}
-        </div>
-
-        {filteredLanguages.length === 0 && (
-          <div className="no-lang-match">
-            <p>No language matching "{languageSearch}".</p>
-            <button 
-              type="button" 
-              className="reset-lang-btn"
-              onClick={() => { setLanguageSearch(''); setSelectedRegion('all'); }}
-            >
-              Show All
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  /* =========================================================================
-     SCREEN 2: SIGN UP / LOGIN (IN CHOSEN LANGUAGE ONLY)
+     SIGN UP / LOGIN (IN CHOSEN LANGUAGE)
      ========================================================================= */
   const currentDistricts = STATES_AND_DISTRICTS[regData.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
@@ -483,14 +376,18 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         <GovernmentEmblem size={48} />
         <div className="header-top-bar">
           <span className="national-badge">JanDhwani DPI</span>
-          <button 
-            type="button" 
+          <select 
             className="change-lang-btn"
-            onClick={() => setHasSelectedLanguage(false)}
+            value={currentLang}
+            onChange={(e) => handleLanguageSelect(e.target.value)}
             title="Switch Language"
           >
-            {ALL_LANGUAGES.find(l => l.code === currentLang)?.native || 'Language'} ({t.changeLang})
-          </button>
+            {ALL_LANGUAGES.map(l => (
+              <option key={l.code} value={l.code}>
+                {l.native} ({l.name})
+              </option>
+            ))}
+          </select>
         </div>
 
         <h1 className="login-title">{t.portalTitle}</h1>
