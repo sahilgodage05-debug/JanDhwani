@@ -641,7 +641,7 @@ function App() {
         actionRequired: 'Review',
         confirmedLocation: locInfo.title,
         routingUnit: locInfo.routing,
-        severityScore: ${data.final_priority_score || 5}/10 (Calculated),
+        severityScore: `${data.final_priority_score || 5}/10 (Calculated)`,
         numericUrgency: data.final_priority_score || 5,
         imageVerified: imageAiAnalysis?.verified || false,
         imageScore: imageAiAnalysis?.matchScore || null,
