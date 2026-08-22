@@ -457,8 +457,10 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             </button>
           </div>
 
-          {/* Section 1: Identity & Contact */}
-          <div className="section-title">
+          <div className="form-grid-layout">
+            <div className="form-column">
+              {/* Section 1: Identity & Contact */}
+              <div className="section-title">
             <span>{t.sec1}</span>
           </div>
 
@@ -524,8 +526,10 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             </div>
           </div>
 
-          {/* Section 2: Location & Administrative Geography */}
-          <div className="section-title">
+            </div>
+            <div className="form-column">
+              {/* Section 2: Location & Administrative Geography */}
+              <div className="section-title">
             <span>{t.sec2}</span>
           </div>
 
@@ -804,6 +808,8 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             </div>
           </div>
 
+            </div>
+          </div>
           <button type="submit" className="auth-submit-btn">
             {t.submitSignUp}
           </button>

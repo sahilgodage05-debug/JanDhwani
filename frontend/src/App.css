@@ -1698,7 +1698,7 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(rgba(252, 248, 245, 0.7), rgba(252, 248, 245, 0.85)), url('./assets/login-bg.png');
+  background: linear-gradient(rgba(252, 248, 245, 0.35), rgba(252, 248, 245, 0.55)), url('./assets/login-bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

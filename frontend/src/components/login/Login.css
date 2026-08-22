@@ -20,15 +20,30 @@
   background: transparent;
   backdrop-filter: none;
   border-radius: 22px;
-  padding: 30px 32px;
+  padding: 20px 40px;
   box-shadow: none;
   border: none;
   width: 100%;
-  max-width: 750px;
-  margin: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
   box-sizing: border-box;
   animation: fadeIn 0.35s ease-in-out;
 }
+
+/* Two-column layout for the form */
+.form-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+  .form-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
