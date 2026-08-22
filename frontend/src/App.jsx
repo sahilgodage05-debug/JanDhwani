@@ -929,34 +929,6 @@ function App() {
                 <span>{t.syncedBanner}</span>
               </div>
 
-                        5
-                      );
-                      alert(`Ticket ${submissionResult.ticketId} marked as resolved by Citizen and archived.`);
-                      setActiveTab('resolved_archive');
-                    }}
-                  >
-                    Mark as Resolved (Citizen Sign-off)
-                  </button>
-
-                  <button 
-                    type="button" 
-                    className="instant-res-btn-authority"
-                    onClick={() => {
-                      handleResolveByAuthority(
-                        submissionResult.ticketId, 
-                        `Govt Authority: ${submissionResult.actionRequired}. Ground verified.`, 
-                        currentUser ? `${currentUser.fullName} (Zonal Officer)` : 'Er. Rajesh Deshmukh, Executive Engineer', 
-                        '₹2.4 Lakhs'
-                      );
-                      alert(`Ticket ${submissionResult.ticketId} marked as resolved by Govt Authority and archived.`);
-                      setActiveTab('resolved_archive');
-                    }}
-                  >
-                    Mark as Resolved (Govt Authority)
-                  </button>
-                </div>
-              </div>
-
               <button 
                 type="button" 
                 className="submit-btn secondary-btn" 
