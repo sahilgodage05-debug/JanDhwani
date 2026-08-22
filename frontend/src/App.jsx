@@ -791,13 +791,6 @@ function App() {
           </button>
           <button 
             type="button"
-            className={`nav-btn twin-nav-btn-highlight ${activeTab === '3d_twin' ? 'active' : ''}`}
-            onClick={() => setActiveTab('3d_twin')}
-          >
-            3D Digital Twin ({activeComplaints.length})
-          </button>
-          <button 
-            type="button"
             className={`nav-btn archive-nav-btn-highlight ${activeTab === 'resolved_archive' ? 'active' : ''}`}
             onClick={() => setActiveTab('resolved_archive')}
           >
@@ -942,16 +935,7 @@ function App() {
                 <span>{t.syncedBanner}</span>
               </div>
 
-              {/* 1-Click Launch into 3D Digital Twin Map */}
-              <div className="twin-launch-card">
-                <button 
-                  type="button" 
-                  className="view-3d-beacon-btn"
-                  onClick={() => setActiveTab('3d_twin')}
-                >
-                  View on 3D Digital Twin Map ➔
-                </button>
-              </div>
+
 
               {/* Instant Dual-Role Resolution & Removal Action */}
               <div className="instant-resolution-card">
