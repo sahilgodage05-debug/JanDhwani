@@ -13,7 +13,7 @@ import './Login.css';
 function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageChange }) {
   // Step 0: Language Gate state
   const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
-  const [currentLang, setCurrentLang] = useState(activeLanguage || 'hi-IN');
+  const [currentLang, setCurrentLang] = useState(activeLanguage || 'en-IN');
   const [languageSearch, setLanguageSearch] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('all');
 
@@ -42,7 +42,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     tehsil: '',
     panchayatOrWard: '',
     pincode: '',
-    preferredLanguage: activeLanguage || 'hi-IN',
+    preferredLanguage: activeLanguage || 'en-IN',
     password: '',
     confirmPassword: ''
   });
@@ -53,8 +53,8 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
   const [alertInfo, setAlertInfo] = useState(null);
   const [pincodeDetectedInfo, setPincodeDetectedInfo] = useState(null);
 
-  // Helper for UI text based on chosen language (with fallback to Hindi/English)
-  const t = UI_STRINGS[currentLang] || UI_STRINGS['hi-IN'] || UI_STRINGS['en-IN'];
+  // Helper for UI text based on chosen language (with fallback)
+  const t = UI_STRINGS[currentLang] || UI_STRINGS['en-IN'] || UI_STRINGS['hi-IN'];
 
   // Filter languages based on search and region
   const filteredLanguages = useMemo(() => {
@@ -101,7 +101,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       if (field === 'email') error = VALIDATION_RULES.email(value);
       if (field === 'password') error = VALIDATION_RULES.password(value) ? `${t.requiredErr} (Min. 6 chars)` : null;
       if (field === 'confirmPassword') {
-        if (value !== regData.password) error = 'Passwords do not match / पासवर्ड मेल नहीं खाते';
+        if (value !== regData.password) error = 'Passwords do not match';
       }
       if (field === 'district') error = VALIDATION_RULES.district(value) ? `${t.requiredErr} *` : null;
       if (field === 'tehsil') error = VALIDATION_RULES.subArea(value, extra || regData.areaType) ? `${t.requiredErr} *` : null;
@@ -162,17 +162,24 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     }
   };
 
-  // Flipkart / Swiggy Style Location Permission Handler
+  // Flipkart / Swiggy Style Location Permission Handler (Fully Localized)
   const requestLocationPermission = () => {
     if (!navigator.geolocation) {
       setGpsStatus({
         granted: false,
-        message: 'लोकेशन सेवा उपलब्ध नहीं है (Geolocation not supported)'
+        message: currentLang === 'en-IN' 
+          ? 'Geolocation is not supported by your browser' 
+          : 'लोकेशन सेवा उपलब्ध नहीं है (Geolocation not supported)'
       });
       return;
     }
 
-    setGpsStatus({ granted: null, message: 'लोकेशन अनुमति मांगी जा रही है (Requesting GPS)...' });
+    setGpsStatus({ 
+      granted: null, 
+      message: currentLang === 'en-IN' 
+        ? 'Requesting GPS Location Permission...' 
+        : 'लोकेशन अनुमति मांगी जा रही है (Requesting GPS)...' 
+    });
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -214,7 +221,9 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       (err) => {
         setGpsStatus({
           granted: false,
-          message: '❌ अनुमति अस्वीकृत (Permission Denied). कृपया नीचे मैन्युअल रूप से चुनें।'
+          message: currentLang === 'en-IN' 
+            ? '❌ Permission Denied. Please select manually from the dropdowns below.' 
+            : '❌ अनुमति अस्वीकृत (Permission Denied). कृपया नीचे मैन्युअल रूप से चुनें।'
         });
         setLocationMode('manual');
       },
@@ -225,7 +234,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
   // 1-Click Fast Auto-Fill with DigiLocker / Aadhaar Sandbox
   const handleDigiLockerFastFill = () => {
     setRegData({
-      fullName: 'सुनील देशमुख (Sunil Deshmukh)',
+      fullName: 'Sunil Deshmukh',
       mobile: '9822998877',
       email: 'sunil.deshmukh@gov.in',
       state: 'Maharashtra',
@@ -287,7 +296,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       isLoggedIn: true
     };
 
-    setAlertInfo({ type: 'success', text: '✅ पहचान प्रमाणित! (Verified). Redirecting...' });
+    setAlertInfo({ type: 'success', text: '✅ Verified! Redirecting...' });
     setTimeout(() => {
       onLoginSuccess(citizen);
     }, 500);
@@ -342,7 +351,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     if (hasAnyError) {
       setAlertInfo({ 
         type: 'error', 
-        text: `⚠️ ${t.requiredErr}: कृपया लाल स्टार वाले सभी आवश्यक फ़ील्ड भरें` 
+        text: `⚠️ ${t.requiredErr}: Please fill all required fields marked with red star (*)` 
       });
       return;
     }
@@ -390,7 +399,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <span className="national-badge">🇮🇳 JanDhwani</span>
             <span className="brics-badge">🌐 Bhashini AI</span>
           </div>
-          <h1 className="login-title">जनध्वनि (JanDhwani)</h1>
+          <h1 className="login-title">JanDhwani • जनध्वनि</h1>
           <p className="login-tagline">Select Your Language • अपनी भाषा चुनें</p>
         </div>
 
@@ -401,7 +410,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             <input 
               type="text"
               className="lang-search-input"
-              placeholder="Search language (मराठी, English, தமிழ், বাংলা)..."
+              placeholder="Search language (English, Marathi, Hindi, தமிழ், বাংলা)..."
               value={languageSearch}
               onChange={(e) => setLanguageSearch(e.target.value)}
             />
@@ -478,7 +487,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             onClick={() => setHasSelectedLanguage(false)}
             title="Switch Language"
           >
-            🌐 {ALL_LANGUAGES.find(l => l.code === currentLang)?.native || 'भाषा'} ({t.changeLang})
+            🌐 {ALL_LANGUAGES.find(l => l.code === currentLang)?.native || 'Language'} ({t.changeLang})
           </button>
         </div>
 
@@ -539,14 +548,14 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           {/* 1-Click DigiLocker Fast-Fill Helper */}
           <div className="digilocker-helper-banner">
             <div className="digi-text">
-              <strong>🇮🇳 Easy Sign Up:</strong> DigiLocker Auto-Fill
+              <strong>🇮🇳 {t.fastFillText}</strong>
             </div>
             <button 
               type="button" 
               className="digi-fast-btn"
               onClick={handleDigiLockerFastFill}
             >
-              ⚡ Fast Fill
+              {t.fastFillBtn || '⚡ Fast Fill'}
             </button>
           </div>
 
@@ -628,7 +637,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           {/* Swiggy / Flipkart Style Location Mode Switcher */}
           <div className="location-permission-card">
             <div className="loc-permission-header">
-              <strong>📍 स्थान चयन:</strong>
+              <strong>📍 {t.locModeTitle}</strong>
             </div>
             
             <div className="loc-permission-actions">
@@ -637,7 +646,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 className={`loc-perm-btn ${locationMode === 'gps_permission' ? 'active-perm' : ''}`}
                 onClick={requestLocationPermission}
               >
-                📡 शेयर लोकेशन (Share GPS)
+                {t.shareGpsBtn}
               </button>
               
               <button
@@ -645,7 +654,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 className={`loc-perm-btn ${locationMode === 'manual' ? 'active-perm' : ''}`}
                 onClick={() => setLocationMode('manual')}
               >
-                ✍️ मैन्युअल चुनें (Select Manually)
+                {t.selectManualBtn}
               </button>
             </div>
 
@@ -665,7 +674,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                 <input 
                   type="text"
                   className={`input-field pincode-highlight ${touched.pincode && errors.pincode ? 'input-error' : ''}`}
-                  placeholder="e.g. 411001, 854301"
+                  placeholder="e.g. 411001, 854301, 110001"
                   value={regData.pincode}
                   onChange={(e) => handlePincodeChange(e.target.value)}
                   onBlur={() => handleBlur('pincode')}
@@ -782,7 +791,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                   <input 
                     type="text"
                     className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
-                    placeholder="उदा. Haveli / Kasba Block"
+                    placeholder={currentLang === 'en-IN' ? 'e.g. Haveli / Kasba Block' : 'उदा. Haveli / Kasba Block'}
                     value={regData.tehsil}
                     onChange={(e) => {
                       setRegData({ ...regData, tehsil: e.target.value });
@@ -800,7 +809,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                   <input 
                     type="text"
                     className={`input-field ${touched.panchayatOrWard && errors.panchayatOrWard ? 'input-error' : ''}`}
-                    placeholder="उदा. Wagholi / Srinagar"
+                    placeholder={currentLang === 'en-IN' ? 'e.g. Wagholi / Loni' : 'उदा. Wagholi / Srinagar'}
                     value={regData.panchayatOrWard}
                     onChange={(e) => {
                       setRegData({ ...regData, panchayatOrWard: e.target.value });
@@ -817,11 +826,11 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
             ) : (
               <>
                 <div className="form-group">
-                  <label>नगर निगम / जोन <span className="req">*</span></label>
+                  <label>{t.municipalCorp} <span className="req">*</span></label>
                   <input 
                     type="text"
                     className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
-                    placeholder="उदा. PMC / GCC / KMC"
+                    placeholder={currentLang === 'en-IN' ? 'e.g. Pune PMC / GCC / KMC' : 'उदा. PMC / GCC / KMC'}
                     value={regData.tehsil}
                     onChange={(e) => {
                       setRegData({ ...regData, tehsil: e.target.value });
@@ -839,7 +848,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
                   <input 
                     type="text"
                     className={`input-field ${touched.panchayatOrWard && errors.panchayatOrWard ? 'input-error' : ''}`}
-                    placeholder="उदा. Ward No. 14 / Ballygunge"
+                    placeholder={currentLang === 'en-IN' ? 'e.g. Ward No. 14 / Central Zone' : 'उदा. Ward No. 14 / Ballygunge'}
                     value={regData.panchayatOrWard}
                     onChange={(e) => {
                       setRegData({ ...regData, panchayatOrWard: e.target.value });

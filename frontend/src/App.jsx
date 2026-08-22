@@ -5,7 +5,7 @@ import { UI_STRINGS } from './translations';
 import './App.css';
 
 function App() {
-  const [selectedLanguage, setSelectedLanguage] = useState('hi-IN');
+  const [selectedLanguage, setSelectedLanguage] = useState('en-IN');
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'grievance'
   
@@ -33,7 +33,7 @@ function App() {
   const recognitionRef = useRef(null);
 
   // Active translation dictionary
-  const t = UI_STRINGS[selectedLanguage] || UI_STRINGS['hi-IN'] || UI_STRINGS['en-IN'];
+  const t = UI_STRINGS[selectedLanguage] || UI_STRINGS['en-IN'] || UI_STRINGS['hi-IN'];
 
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
@@ -105,7 +105,9 @@ function App() {
       setLocationSource('gps');
       setIsLocationConfirmed(true);
     }, () => {
-      alert("Unable to fetch live GPS. You can confirm via registered jurisdiction or select manually.");
+      alert(selectedLanguage === 'en-IN' 
+        ? "Unable to fetch live GPS. You can confirm via registered jurisdiction or select manually." 
+        : "लाइव GPS प्राप्त करने में असमर्थ। आप पंजीकृत पते या मैन्युअल रूप से चुन सकते हैं।");
     });
   };
 
@@ -194,7 +196,9 @@ function App() {
     }
 
     if (!isLocationConfirmed) {
-      alert('कृपया शिकायत का स्थान सत्यापित एवं पुष्ट करें (Please verify and confirm the incident location)');
+      alert(selectedLanguage === 'en-IN' 
+        ? 'Please check the box to confirm this is the exact incident location before submitting.' 
+        : 'कृपया शिकायत का स्थान सत्यापित एवं पुष्ट करें (Please verify location)');
       return;
     }
 
@@ -287,7 +291,7 @@ function App() {
           <div className="card-header">
             <div className="emblem-row">
               <span className="national-badge">🇮🇳 JanDhwani DPI</span>
-              <span className="brics-badge">🤖 Gemini Vision AI Verified</span>
+              <span className="brics-badge">🤖 Gemini Vision AI</span>
             </div>
             <h1 className="title">{t.portalTitle}</h1>
             <p className="subtitle">{t.fileGrievanceTitle} • {t.fileGrievanceSub}</p>
@@ -395,9 +399,9 @@ function App() {
                 )}
               </div>
 
-              {/* Multimodal Image Evidence Upload & AI Verification (FDA Maharashtra Benchmark) */}
+              {/* Multimodal Image Evidence Upload & AI Verification */}
               <div className="form-group">
-                <label>साक्ष्य फोटो अपलोड एवं AI सत्यापन (Photo Evidence & Gemini Vision AI Check)</label>
+                <label>{t.photoEvidenceLabel}</label>
                 
                 {!imagePreview ? (
                   <div className="action-buttons">
@@ -511,7 +515,7 @@ function App() {
                       </div>
                     </div>
                     <div className="form-group">
-                      <label>लैंडमार्क / स्थल (Landmark / Street)</label>
+                      <label>{t.landmarkLabel}</label>
                       <input
                         type="text"
                         className="input-field"
