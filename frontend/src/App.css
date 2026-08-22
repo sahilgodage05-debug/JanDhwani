@@ -1703,3 +1703,23 @@ textarea:focus {
   background-position: center;
   background-repeat: no-repeat;
 }
+
+/* Main App Background - India Gate */
+.app-main-bg {
+  min-height: 100vh;
+  background-image: url('https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=2070&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main-bg .card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(8px);
+}
+.app-main-bg .portal-nav {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(8px);
+}
