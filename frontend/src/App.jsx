@@ -1,9 +1,37 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Login from './components/Login';
 import DigitalTwinMap from './components/DigitalTwinMap';
 import { ALL_LANGUAGES, STATES_AND_DISTRICTS } from './indiaData';
 import { UI_STRINGS } from './translations';
 import './App.css';
+
+// 1-Click Voice Simulation Audio Scripts across Indian Languages for Judges
+const VOICE_DEMO_SAMPLES = [
+  {
+    lang: 'hi-IN',
+    label: '🎙️ Hindi Voice Sample',
+    transcript: 'हमारे क्षेत्र में पीने के पानी की मुख्य पाइपलाइन फट गई है और 4 दिनों से बिजली आपूर्ति पूरी तरह बाधित है।',
+    dept: 'Jal Shakti & Power Board'
+  },
+  {
+    lang: 'mr-IN',
+    label: '🎙️ Marathi Voice Sample',
+    transcript: 'वाघोली ग्रामपंचायत हद्दीत मुख्य जलवाहिनी फुटली असून गेल्या चार दिवसांपासून पिण्याचे पाणी व वीज पुरवठा बंद आहे.',
+    dept: 'Jal Shakti & MSEDCL'
+  },
+  {
+    lang: 'ta-IN',
+    label: '🎙️ Tamil Voice Sample',
+    transcript: 'எங்கள் பகுதியில் குடிநீர் குழாய் உடைந்து நான்கு நாட்களாக மின்சாரம் மற்றும் குடிநீர் விநியோகம் முற்றிலும் தடைபட்டுள்ளது.',
+    dept: 'Tamil Nadu Water Supply & TANGEDCO'
+  },
+  {
+    lang: 'en-IN',
+    label: '🎙️ English Voice Sample',
+    transcript: 'There is a critical municipal water tank burst in our block, and we have had zero electricity for four consecutive days.',
+    dept: 'Ministry of Jal Shakti & Power'
+  }
+];
 
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('en-IN');
@@ -13,6 +41,8 @@ function App() {
   // Grievance form state
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceDuration, setVoiceDuration] = useState(0);
+  const [voiceInterimText, setVoiceInterimText] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageAiAnalysis, setImageAiAnalysis] = useState(null);
@@ -32,9 +62,25 @@ function App() {
   const [textError, setTextError] = useState(null);
   
   const recognitionRef = useRef(null);
+  const timerRef = useRef(null);
 
   // Active translation dictionary
   const t = UI_STRINGS[selectedLanguage] || UI_STRINGS['en-IN'] || UI_STRINGS['hi-IN'];
+
+  // Timer effect for voice recording duration
+  useEffect(() => {
+    if (isRecording) {
+      setVoiceDuration(0);
+      timerRef.current = setInterval(() => {
+        setVoiceDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isRecording]);
 
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
@@ -57,39 +103,85 @@ function App() {
     setSubmissionResult(null);
   };
 
-  const startRecording = () => {
+  // Start / Stop HTML5 Speech Recognition
+  const toggleRecording = () => {
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      return;
+    }
+
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Your browser doesn't support Web Speech recognition. Please type your grievance.");
+      alert("Web Speech recognition is not supported in this browser. Please use the simulated Judge Voice Samples below or type your grievance.");
       return;
     }
     
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = false;
-    recognitionRef.current.lang = selectedLanguage;
-    recognitionRef.current.interimResults = false;
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = selectedLanguage;
 
-    recognitionRef.current.onstart = () => {
+    recognition.onstart = () => {
       setIsRecording(true);
+      setVoiceInterimText('');
     };
 
-    recognitionRef.current.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setText(prevText => (prevText ? prevText + ' ' + transcript : transcript));
-      setTextError(null);
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setText(prev => (prev ? prev + ' ' + finalTranscript : finalTranscript));
+        setTextError(null);
+      }
+      setVoiceInterimText(interimTranscript);
+    };
+
+    recognition.onerror = (event) => {
+      console.warn('Speech recognition error:', event.error);
+      if (event.error === 'not-allowed') {
+        alert("Microphone permission was denied. Please allow microphone access in your browser settings or use the 1-click voice presets.");
+      }
       setIsRecording(false);
     };
 
-    recognitionRef.current.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
+    recognition.onend = () => {
       setIsRecording(false);
+      setVoiceInterimText('');
     };
 
-    recognitionRef.current.onend = () => {
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error(e);
       setIsRecording(false);
-    };
+    }
+  };
 
-    recognitionRef.current.start();
+  // 1-Click Judge Voice Simulator
+  const handleSimulateVoiceInput = (sample) => {
+    setSelectedLanguage(sample.lang);
+    setText(sample.transcript);
+    setTextError(null);
+    setIsRecording(true);
+    setVoiceInterimText(sample.transcript);
+    setTimeout(() => {
+      setIsRecording(false);
+      setVoiceInterimText('');
+    }, 1200);
   };
 
   const fetchLiveGps = () => {
@@ -131,7 +223,7 @@ function App() {
         let detectedObjects = ["Physical Structural Defect", "Ground Disruption", "Public Property"];
         let matchScore = 95;
 
-        if (lower.includes('water') || lower.includes('पानी') || lower.includes('पाणी') || lower.includes('தண்ணீர்')) {
+        if (lower.includes('water') || lower.includes('पानी') || lower.includes('पाणी') || lower.includes('தண்ணீர்') || lower.includes('कुழாய்')) {
           detectedCategory = "Water Supply & Pipeline Rupture";
           detectedObjects = ["Pipeline Surface Rupture", "Water Accumulation", "Hydraulic Leakage"];
           matchScore = 97;
@@ -215,9 +307,9 @@ function App() {
       let dept = "Public Works Department (PWD / लोक निर्माण विभाग)";
       let oneLineSummary = "Essential public infrastructure defect requiring administrative dispatch.";
       
-      if (lower.includes('water') || lower.includes('पानी') || lower.includes('पाणी') || lower.includes('தண்ணீர்')) {
-        dept = "Ministry of Jal Shakti (जल शक्ति) / Water Supply Board";
-        oneLineSummary = "Critical water pipeline breakdown and severe supply disruption reported.";
+      if (lower.includes('water') || lower.includes('पानी') || lower.includes('पाणी') || lower.includes('தண்ணீர்') || lower.includes('कुழாய்')) {
+        dept = "Ministry of Jal Shakti (जल शक्ति) & Power Supply Board";
+        oneLineSummary = "Critical water conduit rupture & power outage reported by citizen in local dialect.";
       } else if (lower.includes('medicine') || lower.includes('food') || lower.includes('दवा') || lower.includes('औषध')) {
         dept = "Food & Drugs Administration (FDA / अन्न व औषध प्रशासन)";
         oneLineSummary = "Suspected food safety / medicine compliance breach reported for physical verification.";
@@ -307,7 +399,7 @@ function App() {
           <div className="card-header">
             <div className="emblem-row">
               <span className="national-badge">🇮🇳 JanDhwani DPI</span>
-              <span className="brics-badge">🤖 Gemini Vision AI</span>
+              <span className="brics-badge">🎙️ Multilingual Voice Engine</span>
             </div>
             <h1 className="title">{t.portalTitle}</h1>
             <p className="subtitle">{t.fileGrievanceTitle} • {t.fileGrievanceSub}</p>
@@ -398,12 +490,70 @@ function App() {
                 </select>
               </div>
 
-              {/* Grievance Text Area with HTML5 Speech-to-Text */}
+              {/* =========================================================================
+                 DEDICATED VOICE-FIRST GRIEVANCE STUDIO CARD
+                 ========================================================================= */}
+              <div className="voice-studio-card">
+                <div className="voice-studio-header">
+                  <strong>🎙️ Voice-First Input (बोलकर शिकायत दर्ज करें)</strong>
+                  <span className="voice-lang-tag">
+                    Active: {ALL_LANGUAGES.find(l => l.code === selectedLanguage)?.native || 'Voice Engine'}
+                  </span>
+                </div>
+
+                <div className="voice-mic-center">
+                  <button 
+                    type="button" 
+                    className={`large-voice-btn ${isRecording ? 'recording-active' : ''}`}
+                    onClick={toggleRecording}
+                  >
+                    <span className="mic-icon-large">🎙️</span>
+                    <span className="mic-status-label">
+                      {isRecording ? `Listening (${voiceDuration}s) • Tap to Stop` : 'Tap to Record Voice in Local Language'}
+                    </span>
+                  </button>
+                </div>
+
+                {isRecording && (
+                  <div className="audio-visualizer-wave">
+                    <div className="wave-bar"></div>
+                    <div className="wave-bar"></div>
+                    <div className="wave-bar"></div>
+                    <div className="wave-bar"></div>
+                    <div className="wave-bar"></div>
+                    <div className="wave-bar"></div>
+                    <div className="wave-bar"></div>
+                    <div className="wave-bar"></div>
+                    <span className="live-caption">
+                      {voiceInterimText ? `"${voiceInterimText}"` : 'Listening to speech...'}
+                    </span>
+                  </div>
+                )}
+
+                {/* 1-Click Judge Voice Presets */}
+                <div className="voice-demo-presets">
+                  <span className="preset-label">⚡ 1-Click Judge Voice Demos:</span>
+                  <div className="preset-chips">
+                    {VOICE_DEMO_SAMPLES.map((sample, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className="voice-preset-chip"
+                        onClick={() => handleSimulateVoiceInput(sample)}
+                      >
+                        {sample.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Grievance Text Area (Synchronized with Voice & Keyboard) */}
               <div className="form-group">
-                <label>{t.yourGrievance} <span className="req">*</span></label>
+                <label>{t.yourGrievance} (Transcript / Text) <span className="req">*</span></label>
                 <div className="textarea-container">
                   <textarea 
-                    rows="5" 
+                    rows="4" 
                     placeholder={t.grievancePlaceholder}
                     value={text}
                     onChange={(e) => {
@@ -412,14 +562,6 @@ function App() {
                     }}
                     required
                   />
-                  <button 
-                    type="button" 
-                    className={`mic-button ${isRecording ? 'recording' : ''}`}
-                    onClick={startRecording}
-                    title={t.recordVoice}
-                  >
-                    {isRecording ? t.listening : t.recordVoice}
-                  </button>
                 </div>
                 {textError && (
                   <span className="error-text">⚠️ {textError}</span>
