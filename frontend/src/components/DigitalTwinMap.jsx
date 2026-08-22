@@ -658,6 +658,27 @@ function DigitalTwinMap({ latestGrievance, onBackToPortal }) {
               </div>
             )}
 
+            {/* Google Satellite Inspection View */}
+            <div className="modal-gmaps-preview">
+              <div className="gmaps-preview-header">
+                <span>🛰️ Live Google Maps Ground Satellite Verification:</span>
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${selectedHotspot.coords.lat},${selectedHotspot.coords.lng}`}
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="modal-gmaps-link"
+                >
+                  ↗ Full Satellite View
+                </a>
+              </div>
+              <iframe
+                title="Satellite Ground Inspection"
+                className="modal-gmaps-iframe"
+                src={`https://maps.google.com/maps?q=${selectedHotspot.coords.lat},${selectedHotspot.coords.lng}&t=k&z=16&ie=UTF8&iwloc=&output=embed`}
+                loading="lazy"
+              />
+            </div>
+
             <div className="modal-footer-actions">
               <button 
                 type="button" 

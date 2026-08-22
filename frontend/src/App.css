@@ -705,9 +705,46 @@ textarea:focus {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--brown-50);
+}
+
+.google-map-embed-wrapper {
+  background: var(--brown-10);
+  border: 1px solid var(--brown-150);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 12px;
+}
+
+.map-embed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brown-800);
+}
+
+.open-gmaps-link {
+  color: var(--brown-600);
+  text-decoration: underline;
+  font-size: 10.5px;
+  font-weight: bold;
+}
+
+.open-gmaps-link:hover {
+  color: var(--brown-900);
+}
+
+.google-map-iframe {
+  width: 100%;
+  height: 160px;
+  border: none;
+  border-radius: 8px;
+  display: block;
 }
 
 .conf-pill {

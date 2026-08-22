@@ -534,7 +534,39 @@
   border-radius: 8px;
   font-size: 11px;
   color: #efebe9;
+  margin-bottom: 12px;
+}
+
+.modal-gmaps-preview {
+  background: var(--brown-900);
+  border: 1px solid var(--brown-600);
+  border-radius: 10px;
+  padding: 8px;
   margin-bottom: 16px;
+}
+
+.gmaps-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffab91;
+}
+
+.modal-gmaps-link {
+  color: #ffccbc;
+  text-decoration: underline;
+  font-size: 10.5px;
+}
+
+.modal-gmaps-iframe {
+  width: 100%;
+  height: 140px;
+  border: none;
+  border-radius: 6px;
+  display: block;
 }
 
 .modal-footer-actions {

@@ -711,6 +711,27 @@ function App() {
                     <span className="conf-pill">🏛️ {activeLoc.routing}</span>
                   </div>
 
+                  {/* Live Google Map Interactive View Widget */}
+                  <div className="google-map-embed-wrapper">
+                    <div className="map-embed-header">
+                      <span>🗺️ Live Google Map & Satellite Fix:</span>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeLoc.title)}`}
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="open-gmaps-link"
+                      >
+                        ↗ Open in Google Maps
+                      </a>
+                    </div>
+                    <iframe
+                      title="Google Map Location Preview"
+                      className="google-map-iframe"
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(activeLoc.title)}&t=m&z=14&ie=UTF8&iwloc=&output=embed`}
+                      loading="lazy"
+                    />
+                  </div>
+
                   {/* Checkbox for Final Confirmation */}
                   <label className="loc-confirm-checkbox">
                     <input
