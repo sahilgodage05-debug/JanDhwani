@@ -1,33 +1,35 @@
 import { useState, useRef, useEffect } from 'react';
 import Login from './components/Login';
 import DigitalTwinMap from './components/DigitalTwinMap';
-import { ALL_LANGUAGES, STATES_AND_DISTRICTS } from './indiaData';
+import ResolvedArchive from './components/ResolvedArchive';
+import GovernmentEmblem from './components/GovernmentEmblem';
+import { ALL_LANGUAGES, STATES_AND_DISTRICTS, DEFAULT_HOTSPOTS, INITIAL_RESOLVED_RECORDS } from './indiaData';
 import { UI_STRINGS } from './translations';
 import './App.css';
 
-// 1-Click Voice Simulation Audio Scripts across Indian Languages for Judges
+// 1-Click Voice Simulation Audio Scripts across Indian Languages for Evaluation
 const VOICE_DEMO_SAMPLES = [
   {
     lang: 'hi-IN',
-    label: '🎙️ Hindi Voice Sample',
+    label: 'Hindi Voice Sample',
     transcript: 'हमारे क्षेत्र में पीने के पानी की मुख्य पाइपलाइन फट गई है और 4 दिनों से बिजली आपूर्ति पूरी तरह बाधित है।',
     dept: 'Jal Shakti & Power Board'
   },
   {
     lang: 'mr-IN',
-    label: '🎙️ Marathi Voice Sample',
+    label: 'Marathi Voice Sample',
     transcript: 'वाघोली ग्रामपंचायत हद्दीत मुख्य जलवाहिनी फुटली असून गेल्या चार दिवसांपासून पिण्याचे पाणी व वीज पुरवठा बंद आहे.',
     dept: 'Jal Shakti & MSEDCL'
   },
   {
     lang: 'ta-IN',
-    label: '🎙️ Tamil Voice Sample',
+    label: 'Tamil Voice Sample',
     transcript: 'எங்கள் பகுதியில் குடிநீர் குழாய் உடைந்து நான்கு நாட்களாக மின்சாரம் மற்றும் குடிநீர் விநியோகம் முற்றிலும் தடைபட்டுள்ளது.',
     dept: 'Tamil Nadu Water Supply & TANGEDCO'
   },
   {
     lang: 'en-IN',
-    label: '🎙️ English Voice Sample',
+    label: 'English Voice Sample',
     transcript: 'There is a critical municipal water tank burst in our block, and we have had zero electricity for four consecutive days.',
     dept: 'Ministry of Jal Shakti & Power'
   }
@@ -36,8 +38,44 @@ const VOICE_DEMO_SAMPLES = [
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('en-IN');
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'grievance' | '3d_twin'
+  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'grievance' | '3d_twin' | 'resolved_archive'
   
+  // Persistent Complaint & Resolved Records State (Local Storage backed)
+  const [activeComplaints, setActiveComplaints] = useState(() => {
+    try {
+      const saved = localStorage.getItem('jandhwani_active_complaints');
+      return saved ? JSON.parse(saved) : DEFAULT_HOTSPOTS;
+    } catch {
+      return DEFAULT_HOTSPOTS;
+    }
+  });
+
+  const [resolvedRecords, setResolvedRecords] = useState(() => {
+    try {
+      const saved = localStorage.getItem('jandhwani_resolved_records');
+      return saved ? JSON.parse(saved) : INITIAL_RESOLVED_RECORDS;
+    } catch {
+      return INITIAL_RESOLVED_RECORDS;
+    }
+  });
+
+  // Sync to Local Storage
+  useEffect(() => {
+    try {
+      localStorage.setItem('jandhwani_active_complaints', JSON.stringify(activeComplaints));
+    } catch (e) {
+      console.warn("Could not sync active complaints", e);
+    }
+  }, [activeComplaints]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jandhwani_resolved_records', JSON.stringify(resolvedRecords));
+    } catch (e) {
+      console.warn("Could not sync resolved records", e);
+    }
+  }, [resolvedRecords]);
+
   // Grievance form state
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -109,6 +147,92 @@ function App() {
     setCurrentUser(null);
     setActiveTab('login');
     setSubmissionResult(null);
+  };
+
+  // Clear All Active Complaints
+  const handleClearAllComplaints = () => {
+    setActiveComplaints([]);
+    setSubmissionResult(null);
+  };
+
+  // Restore Sample Demo Hotspots
+  const handleRestoreDemoHotspots = () => {
+    setActiveComplaints(DEFAULT_HOTSPOTS);
+  };
+
+  // Mark Resolved by Citizen
+  const handleResolveByCitizen = (ticketId, feedback, rating) => {
+    const comp = activeComplaints.find(c => c.id === ticketId) || (submissionResult?.ticketId === ticketId ? submissionResult?.spotObject : null);
+    const resolvedTitle = comp?.title || comp?.coreDefect || 'Remediated Civic Issue';
+    const dept = comp?.department || 'District Administration';
+    const deptKey = comp?.deptKey || 'pwd';
+    const state = comp?.state || customLocation.state || 'Maharashtra';
+    const district = comp?.district || customLocation.district || 'Pune';
+
+    const newRecord = {
+      id: ticketId,
+      title: resolvedTitle,
+      department: dept,
+      deptKey: deptKey,
+      state: state,
+      district: district,
+      resolvedByRole: 'citizen',
+      resolvedByName: currentUser?.fullName || comp?.citizen || 'Verified Citizen',
+      citizen: comp?.citizen || currentUser?.fullName || 'Verified Resident',
+      turnaroundTime: 'Resolved in 18 hrs',
+      rating: rating || 5,
+      resolutionRemarks: feedback || 'Citizen verified: Problem remediated cleanly on ground.',
+      resolvedAt: new Date().toLocaleString(),
+      country: comp?.country || 'India'
+    };
+
+    setActiveComplaints(prev => prev.filter(c => c.id !== ticketId));
+    setResolvedRecords(prev => [newRecord, ...prev.filter(r => r.id !== ticketId)]);
+    if (submissionResult?.ticketId === ticketId) {
+      setSubmissionResult(null);
+    }
+  };
+
+  // Mark Resolved by Government Authority
+  const handleResolveByAuthority = (ticketId, actionTaken, officerName, budget) => {
+    const comp = activeComplaints.find(c => c.id === ticketId) || (submissionResult?.ticketId === ticketId ? submissionResult?.spotObject : null);
+    const resolvedTitle = comp?.title || comp?.coreDefect || 'Remediated Civic Issue';
+    const dept = comp?.department || 'District Administration';
+    const deptKey = comp?.deptKey || 'pwd';
+    const state = comp?.state || customLocation.state || 'Maharashtra';
+    const district = comp?.district || customLocation.district || 'Pune';
+
+    const newRecord = {
+      id: ticketId,
+      title: resolvedTitle,
+      department: dept,
+      deptKey: deptKey,
+      state: state,
+      district: district,
+      resolvedByRole: 'authority',
+      resolvedByName: officerName || 'Zonal Authority',
+      officerName: officerName || (currentUser ? `${currentUser.fullName} (Zonal Officer)` : 'Er. Rajesh Deshmukh, Executive Engineer'),
+      budgetSpent: budget || '₹2.4 Lakhs',
+      turnaroundTime: 'Resolved in 12 hrs',
+      resolutionRemarks: actionTaken || 'Field team completed technical remediation and verified safety on ground.',
+      resolvedAt: new Date().toLocaleString(),
+      country: comp?.country || 'India'
+    };
+
+    setActiveComplaints(prev => prev.filter(c => c.id !== ticketId));
+    setResolvedRecords(prev => [newRecord, ...prev.filter(r => r.id !== ticketId)]);
+    if (submissionResult?.ticketId === ticketId) {
+      setSubmissionResult(null);
+    }
+  };
+
+  // Clear / Delete Resolved Records
+  const handleClearResolvedArchive = () => {
+    setResolvedRecords([]);
+  };
+
+  const handleDeleteResolvedRecord = (recordId) => {
+    setResolvedRecords(prev => prev.filter(r => r.id !== recordId));
   };
 
   // Start / Stop HTML5 Speech Recognition
@@ -271,8 +395,8 @@ function App() {
       if (isScreenshot || isDownloaded) {
         // REJECT SCREENSHOTS & DOWNLOADED IMAGES
         const reason = isScreenshot
-          ? "🚫 Screenshots Not Allowed! To prevent fraud and ensure verified civic ground reality, JanDhwani does NOT accept screenshots. Please take a live photo directly using your phone/device camera at the incident spot."
-          : "🚫 Downloaded Images Not Allowed! Web downloads, stock images, and forwarded social media photos are strictly prohibited. Please capture a live photo directly with your camera at the incident spot.";
+          ? "Screenshots Prohibited: To prevent fraud and ensure verified ground reality, JanDhwani does not accept screenshots. Please take a live photo directly using your device camera at the incident location."
+          : "Downloaded Images Prohibited: Web downloads, stock images, and forwarded social media photos are strictly prohibited. Please capture a live photo directly with your camera at the incident spot.";
         
         setImageRejectReason(reason);
         setImageFile(null);
@@ -308,7 +432,7 @@ function App() {
       }
     } catch (err) {
       console.warn("Camera stream error:", err);
-      setCameraError("Camera permission was denied or no active camera device was detected. You can use the '⚡ 1-Click Camera Demo Snap' button below to simulate an authentic live camera capture.");
+      setCameraError("Camera permission was denied or no active camera device was detected. You can use the 'Instant Camera Demo Snap' button below to simulate an authentic live camera capture.");
     }
   };
 
@@ -351,7 +475,7 @@ function App() {
     }
   };
 
-  // 1-Click Demo Camera Snap for Hackathon Judges / Systems without back camera
+  // 1-Click Demo Camera Snap for Systems without back camera
   const simulateLiveCameraSnap = (defectType = 'garbage') => {
     const canvas = document.createElement('canvas');
     canvas.width = 640;
@@ -375,7 +499,7 @@ function App() {
 
     ctx.fillStyle = '#ffcc80';
     ctx.font = 'bold 16px sans-serif';
-    ctx.fillText(`📸 LIVE CAMERA SENSOR CAPTURE`, 50, 70);
+    ctx.fillText(`LIVE CAMERA SENSOR CAPTURE`, 50, 70);
     ctx.fillStyle = '#ffffff';
     ctx.font = '13px sans-serif';
     ctx.fillText(`Incident Evidence: ${defectType.toUpperCase()} GROUND TRUTH`, 50, 100);
@@ -571,8 +695,42 @@ function App() {
 
       const finalUrgency = isRural ? Math.min(9.8, urgencyBase + 1.2).toFixed(1) : urgencyBase.toFixed(1);
 
+      const newTicketId = 'JD-' + Math.floor(100000 + Math.random() * 900000);
+      const newSpot = {
+        id: newTicketId,
+        title: coreDefect || (oneLineSummary.length > 40 ? oneLineSummary.substring(0, 38) + '...' : oneLineSummary),
+        summary: oneLineSummary,
+        department: dept,
+        deptKey: deptKey,
+        coreDefect: coreDefect,
+        affectedScope: affectedScope,
+        riskLevel: riskLevel,
+        duration: duration,
+        actionRequired: actionRequired,
+        location: locInfo.title,
+        state: customLocation.state || currentUser?.state || 'Maharashtra',
+        district: customLocation.district || currentUser?.district || 'Pune',
+        tehsil: currentUser?.tehsil || 'Haveli Taluka',
+        wardOrPanchayat: currentUser?.panchayatOrWard || 'Wagholi Panchayat',
+        landmark: customLocation.landmark || 'Incident Location',
+        coords: gpsCoords ? { x: -0.5, z: 0.5, lat: gpsCoords.lat, lng: gpsCoords.lng } : { x: -0.55, z: 0.55, lat: 18.5793, lng: 73.9814 },
+        urgency: parseFloat(finalUrgency),
+        baseUrgency: urgencyBase,
+        povertyBoost: isRural ? '+1.4 (Rural Boost)' : '+0.5 (Standard)',
+        areaType: isRural ? 'Rural (Gram Panchayat)' : 'Urban (Municipal Ward)',
+        routing: locInfo.routing,
+        citizen: currentUser ? `${currentUser.fullName} (UID: ${currentUser.mobile})` : 'Verified Resident',
+        imageVerified: imageAiAnalysis?.verified || false,
+        imageConfidence: imageAiAnalysis?.matchScore || 95,
+        status: 'Field Team Dispatched',
+        timestamp: 'Just now (Live)',
+        country: 'India'
+      };
+
+      setActiveComplaints(prev => [newSpot, ...prev]);
+
       setSubmissionResult({
-        ticketId: 'JD-' + Math.floor(100000 + Math.random() * 900000),
+        ticketId: newTicketId,
         translatedText: oneLineSummary,
         department: dept,
         deptKey: deptKey,
@@ -588,7 +746,8 @@ function App() {
         imageVerified: imageAiAnalysis?.verified || false,
         imageScore: imageAiAnalysis?.matchScore || null,
         imageDetails: imageAiAnalysis?.category || null,
-        syncedTo3DMap: true
+        syncedTo3DMap: true,
+        spotObject: newSpot
       });
     }, 1200);
   };
@@ -597,7 +756,7 @@ function App() {
   const availableDistricts = STATES_AND_DISTRICTS[customLocation.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
   return (
-    <div className={activeTab === '3d_twin' ? 'container container-wide' : 'container'}>
+    <div className={activeTab === '3d_twin' || activeTab === 'resolved_archive' ? 'container container-wide' : 'container'}>
       {/* Top Portal Navigation */}
       <nav className="portal-nav">
         <div className="nav-buttons">
@@ -606,27 +765,34 @@ function App() {
             className={`nav-btn ${activeTab === 'login' ? 'active' : ''}`}
             onClick={() => setActiveTab('login')}
           >
-            {currentUser ? '👤 ' + (t.fullName || 'Citizen Profile') : '🌐 ' + t.portalTitle}
+            {currentUser ? (t.fullName || 'Citizen Profile') : t.portalTitle}
           </button>
           <button 
             type="button"
             className={`nav-btn ${activeTab === 'grievance' ? 'active' : ''}`}
             onClick={() => setActiveTab('grievance')}
           >
-            ✍️ {t.fileGrievanceTitle}
+            {t.fileGrievanceTitle}
           </button>
           <button 
             type="button"
             className={`nav-btn twin-nav-btn-highlight ${activeTab === '3d_twin' ? 'active' : ''}`}
             onClick={() => setActiveTab('3d_twin')}
           >
-            🎮 3D Digital Twin Map (Live)
+            3D Digital Twin ({activeComplaints.length})
+          </button>
+          <button 
+            type="button"
+            className={`nav-btn archive-nav-btn-highlight ${activeTab === 'resolved_archive' ? 'active' : ''}`}
+            onClick={() => setActiveTab('resolved_archive')}
+          >
+            {t.resolvedArchiveTab || 'Resolved Archive'} ({resolvedRecords.length})
           </button>
         </div>
 
         {currentUser ? (
           <div className="user-status-pill">
-            <span>👤 {currentUser.fullName?.split(' ')[0]}</span>
+            <span>{currentUser.fullName?.split(' ')[0]}</span>
             <button 
               type="button" 
               className="logout-link-btn" 
@@ -645,8 +811,24 @@ function App() {
       {activeTab === '3d_twin' ? (
         /* STEP 4: 3D DIGITAL TWIN GAMIFIED DASHBOARD (Three.js) */
         <DigitalTwinMap 
-          latestGrievance={submissionResult}
+          hotspots={activeComplaints}
+          onClearAllComplaints={handleClearAllComplaints}
+          onRestoreDemo={handleRestoreDemoHotspots}
+          onResolveCitizen={handleResolveByCitizen}
+          onResolveAuthority={handleResolveByAuthority}
+          onViewArchive={() => setActiveTab('resolved_archive')}
           onBackToPortal={() => setActiveTab('grievance')}
+          currentUser={currentUser}
+        />
+      ) : activeTab === 'resolved_archive' ? (
+        /* RESOLVED ISSUES ARCHIVE & RECORDS LEDGER */
+        <ResolvedArchive 
+          records={resolvedRecords}
+          onClearArchive={handleClearResolvedArchive}
+          onDeleteRecord={handleDeleteResolvedRecord}
+          onBackToMap={() => setActiveTab('3d_twin')}
+          onBackToPortal={() => setActiveTab('grievance')}
+          activeLanguage={selectedLanguage}
         />
       ) : activeTab === 'login' ? (
         /* STEP 1: CITIZEN REGISTRATION & LOGIN */
@@ -660,9 +842,10 @@ function App() {
         /* STEP 1 & 2: GRIEVANCE GATEWAY & GEMINI PROCESSING */
         <div className="card">
           <div className="card-header">
+            <GovernmentEmblem size={52} />
             <div className="emblem-row">
-              <span className="national-badge">🇮🇳 JanDhwani DPI</span>
-              <span className="brics-badge">🎙️ Multilingual Voice Engine</span>
+              <span className="national-badge">JanDhwani DPI</span>
+              <span className="brics-badge">Multilingual Voice Engine</span>
             </div>
             <h1 className="title">{t.portalTitle}</h1>
             <p className="subtitle">{t.fileGrievanceTitle} • {t.fileGrievanceSub}</p>
@@ -672,7 +855,7 @@ function App() {
           {currentUser && (
             <div className="attached-profile-banner">
               <div className="banner-title">
-                <span>🛡️ {t.verifiedBadge}</span>
+                <span>{t.verifiedBadge}</span>
               </div>
               <div className="banner-grid">
                 <div><strong>{t.fullName}:</strong> {currentUser.fullName}</div>
@@ -680,62 +863,62 @@ function App() {
                 <div><strong>{t.state}:</strong> {currentUser.state}</div>
                 <div><strong>{t.district}:</strong> {currentUser.district}</div>
                 <div><strong>{t.areaType}:</strong> <span className="highlight-tag">{currentUser.areaType === 'rural' ? t.rural : t.urban}</span></div>
-                <div><strong>{t.pincode}:</strong> 📮 {currentUser.pincode}</div>
+                <div><strong>{t.pincode}:</strong> PIN: {currentUser.pincode}</div>
               </div>
             </div>
           )}
 
           {submissionResult ? (
             <div className="success-screen">
-              <div className="success-icon">🚀</div>
+              <div className="success-icon-badge">✓</div>
               <h2>{t.dispatchedTitle}</h2>
               <p className="ticket-number">{t.ticketIdText} <strong>{submissionResult.ticketId}</strong></p>
               
               <div className="ai-summary-card">
                 <div className="ai-summary-badge-header">
-                  <span className="ai-badge">🤖 Google Gemini 1.5 Flash: Problem Decomposition & Executive Synthesis</span>
+                  <span className="ai-badge">Google Gemini 1.5 Flash: Problem Decomposition & Executive Synthesis</span>
                 </div>
 
                 {/* 1-Line Structured Executive Brief */}
                 <div className="executive-brief-box">
-                  <strong>📝 1-Line Executive Summary for Decision Makers:</strong>
+                  <strong>Executive Summary for Administrative Decision Makers:</strong>
                   <p>"{submissionResult.translatedText}"</p>
                 </div>
 
                 {/* Structured Breakdown into Sub-Parts */}
                 <div className="decomposition-grid">
                   <div className="decomp-cell">
-                    <small>📌 Core Infrastructure Defect</small>
+                    <small>Core Infrastructure Defect</small>
                     <strong>{submissionResult.coreDefect}</strong>
                   </div>
                   <div className="decomp-cell">
-                    <small>👥 Impacted Population & Scope</small>
+                    <small>Impacted Population & Scope</small>
                     <strong>{submissionResult.affectedScope}</strong>
                   </div>
                   <div className="decomp-cell">
-                    <small>⚠️ Risk & Hazard Analysis</small>
+                    <small>Risk & Hazard Analysis</small>
                     <strong>{submissionResult.riskLevel}</strong>
                   </div>
                   <div className="decomp-cell">
-                    <small>⏱️ Reported Inaction Duration</small>
+                    <small>Reported Inaction Duration</small>
                     <strong>{submissionResult.duration}</strong>
                   </div>
                   <div className="decomp-cell full-width">
-                    <small>🎯 Prescribed Administrative Action</small>
+                    <small>Prescribed Administrative Action</small>
                     <strong>{submissionResult.actionRequired}</strong>
                   </div>
                 </div>
 
                 <div className="routing-meta-row">
-                  <div><strong>🏛️ Department:</strong> {submissionResult.department}</div>
-                  <div><strong>📍 Location:</strong> {submissionResult.confirmedLocation}</div>
-                  <div><strong>🛡️ Routing Unit:</strong> {submissionResult.routingUnit}</div>
-                  <div><strong>⚡ Urgency Score:</strong> <span className="score-badge">{submissionResult.severityScore}</span></div>
+                  <div><strong>Department:</strong> {submissionResult.department}</div>
+                  <div><strong>Location:</strong> {submissionResult.confirmedLocation}</div>
+                  <div><strong>Routing Unit:</strong> {submissionResult.routingUnit}</div>
+                  <div><strong>Urgency Score:</strong> <span className="score-badge">{submissionResult.severityScore}</span></div>
                 </div>
                 
                 {submissionResult.imageVerified && (
                   <div className="verified-evidence-box">
-                    <span>📸 <strong>Google Gemini Vision AI Verified:</strong> {submissionResult.imageDetails} (Confidence: {submissionResult.imageScore}%)</span>
+                    <span><strong>Google Gemini Vision AI Verified:</strong> {submissionResult.imageDetails} (Confidence: {submissionResult.imageScore}%)</span>
                   </div>
                 )}
               </div>
@@ -751,8 +934,50 @@ function App() {
                   className="view-3d-beacon-btn"
                   onClick={() => setActiveTab('3d_twin')}
                 >
-                  🎮 View Live Glowing Beacon on 3D Digital Twin Map ➔
+                  View on 3D Digital Twin Map ➔
                 </button>
+              </div>
+
+              {/* Instant Dual-Role Resolution & Removal Action */}
+              <div className="instant-resolution-card">
+                <div className="instant-res-header">
+                  <span>Instant Dual-Role Resolution & Removal Action:</span>
+                  <small>Test removing this grievance as either Citizen or Govt Authority</small>
+                </div>
+                <div className="instant-res-btn-row">
+                  <button 
+                    type="button" 
+                    className="instant-res-btn-citizen"
+                    onClick={() => {
+                      handleResolveByCitizen(
+                        submissionResult.ticketId, 
+                        `Citizen verified: "${submissionResult.coreDefect}" resolved cleanly. 5/5 Satisfaction.`, 
+                        5
+                      );
+                      alert(`Ticket ${submissionResult.ticketId} marked as resolved by Citizen and archived.`);
+                      setActiveTab('resolved_archive');
+                    }}
+                  >
+                    Mark as Resolved (Citizen Sign-off)
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="instant-res-btn-authority"
+                    onClick={() => {
+                      handleResolveByAuthority(
+                        submissionResult.ticketId, 
+                        `Govt Authority: ${submissionResult.actionRequired}. Ground verified.`, 
+                        currentUser ? `${currentUser.fullName} (Zonal Officer)` : 'Er. Rajesh Deshmukh, Executive Engineer', 
+                        '₹2.4 Lakhs'
+                      );
+                      alert(`Ticket ${submissionResult.ticketId} marked as resolved by Govt Authority and archived.`);
+                      setActiveTab('resolved_archive');
+                    }}
+                  >
+                    Mark as Resolved (Govt Authority)
+                  </button>
+                </div>
               </div>
 
               <button 
@@ -787,12 +1012,10 @@ function App() {
                 </select>
               </div>
 
-              {/* =========================================================================
-                 DEDICATED VOICE-FIRST GRIEVANCE STUDIO CARD
-                 ========================================================================= */}
+              {/* DEDICATED VOICE-FIRST GRIEVANCE STUDIO CARD */}
               <div className="voice-studio-card">
                 <div className="voice-studio-header">
-                  <strong>🎙️ Voice-First Input (बोलकर शिकायत दर्ज करें)</strong>
+                  <strong>Voice-First Input (Multilingual Engine)</strong>
                   <span className="voice-lang-tag">
                     Active: {ALL_LANGUAGES.find(l => l.code === selectedLanguage)?.native || 'Voice Engine'}
                   </span>
@@ -804,7 +1027,6 @@ function App() {
                     className={`large-voice-btn ${isRecording ? 'recording-active' : ''}`}
                     onClick={toggleRecording}
                   >
-                    <span className="mic-icon-large">🎙️</span>
                     <span className="mic-status-label">
                       {isRecording ? `Listening (${voiceDuration}s) • Tap to Stop` : 'Tap to Record Voice in Local Language'}
                     </span>
@@ -827,9 +1049,9 @@ function App() {
                   </div>
                 )}
 
-                {/* 1-Click Judge Voice Presets */}
+                {/* 1-Click Voice Presets */}
                 <div className="voice-demo-presets">
-                  <span className="preset-label">⚡ 1-Click Judge Voice Demos:</span>
+                  <span className="preset-label">Voice Simulation Presets:</span>
                   <div className="preset-chips">
                     {VOICE_DEMO_SAMPLES.map((sample, idx) => (
                       <button
@@ -861,7 +1083,7 @@ function App() {
                   />
                 </div>
                 {textError && (
-                  <span className="error-text">⚠️ {textError}</span>
+                  <span className="error-text">{textError}</span>
                 )}
               </div>
 
@@ -869,15 +1091,14 @@ function App() {
               <div className="form-group">
                 <div className="evidence-header-row">
                   <label>{t.photoEvidenceLabel}</label>
-                  <span className="camera-only-pill">🔒 Live Camera Only (No Screenshots)</span>
+                  <span className="camera-only-pill">Live Camera Hardware Verification (Anti-Fraud)</span>
                 </div>
                 
                 {/* Rejection Warning Banner if Screenshot or Downloaded Web Image is Detected */}
                 {imageRejectReason && (
                   <div className="evidence-reject-banner">
                     <div className="reject-header">
-                      <span className="reject-icon">⚠️</span>
-                      <strong>Anti-Fraud Security Check Triggered:</strong>
+                      <strong>Anti-Fraud Verification Triggered:</strong>
                     </div>
                     <p className="reject-text">{imageRejectReason}</p>
                     <div className="reject-actions">
@@ -886,14 +1107,14 @@ function App() {
                         className="open-camera-cta-btn"
                         onClick={openLiveCamera}
                       >
-                        📸 Open Live Camera to Snap Photo
+                        Open Live Camera to Snap Photo
                       </button>
                       <button 
                         type="button" 
                         className="simulate-camera-btn"
                         onClick={() => simulateLiveCameraSnap('garbage')}
                       >
-                        ⚡ 1-Click Camera Demo Snap
+                        Instant Camera Demo Snapshot
                       </button>
                     </div>
                   </div>
@@ -907,18 +1128,16 @@ function App() {
                         className="primary-camera-btn"
                         onClick={openLiveCamera}
                       >
-                        <span className="btn-icon">📷</span>
                         <div className="btn-text-block">
                           <strong>Open Live Device Camera</strong>
-                          <small>Snap real-time photo with phone/webcam</small>
+                          <small>Capture real-time optical photo with phone/webcam</small>
                         </div>
                       </button>
 
                       <label className="secondary-camera-btn">
-                        <span className="btn-icon">📁</span>
                         <div className="btn-text-block">
                           <strong>Upload Camera Photo File</strong>
-                          <small>Only genuine camera photos (JPG/JPEG)</small>
+                          <small>Only authentic camera captures (JPG/JPEG)</small>
                         </div>
                         <input 
                           type="file" 
@@ -930,29 +1149,29 @@ function App() {
                       </label>
                     </div>
 
-                    {/* Quick Demo Camera Presets for Judges */}
+                    {/* Quick Demo Camera Presets */}
                     <div className="camera-demo-strip">
-                      <span className="demo-strip-label">⚡ Judge Demo:</span>
+                      <span className="demo-strip-label">Sample Ground Evidence:</span>
                       <button 
                         type="button" 
                         className="demo-snap-chip"
                         onClick={() => simulateLiveCameraSnap('garbage')}
                       >
-                        📸 Snap Garbage Incident Photo
+                        Sample: Municipal Solid Waste
                       </button>
                       <button 
                         type="button" 
                         className="demo-snap-chip"
                         onClick={() => simulateLiveCameraSnap('pothole')}
                       >
-                        📸 Snap Road Pothole Photo
+                        Sample: Arterial Road Defect
                       </button>
                       <button 
                         type="button" 
                         className="demo-snap-chip"
                         onClick={() => simulateLiveCameraSnap('pipeline')}
                       >
-                        📸 Snap Water Pipeline Photo
+                        Sample: Water Conduit Fracture
                       </button>
                     </div>
                   </div>
@@ -963,29 +1182,29 @@ function App() {
                       <div className="evidence-info">
                         <div className="evidence-title-row">
                           <strong>{imageFile?.name}</strong>
-                          <span className="source-verified-badge">🛡️ Camera Hardware Verified</span>
+                          <span className="source-verified-badge">Hardware Lens Verified</span>
                         </div>
-                        <small>{(imageFile?.size / 1024).toFixed(1)} KB • Zero Screenshot/Web Signatures</small>
-                        <button type="button" className="remove-img-btn" onClick={removeImage}>✕ Remove Photo</button>
+                        <small>{(imageFile?.size / 1024).toFixed(1)} KB • Verified Metadata Signature</small>
+                        <button type="button" className="remove-img-btn" onClick={removeImage}>Remove Photo</button>
                       </div>
                     </div>
 
                     {isAnalyzingImage && (
                       <div className="ai-scanning-badge">
-                        <span>🔍 Google Gemini Vision AI: Optical lens verification & cross-referencing visual ground evidence...</span>
+                        <span>Google Gemini Vision AI: Optical lens verification & cross-referencing visual ground evidence...</span>
                       </div>
                     )}
 
                     {imageAiAnalysis && (
                       <div className="ai-verified-result">
                         <div className="ai-verif-top">
-                          <span className="verif-check">✅ Optical Evidence Verified ({imageAiAnalysis.matchScore}% Match)</span>
+                          <span className="verif-check">Optical Evidence Verified ({imageAiAnalysis.matchScore}% Match)</span>
                           <span className="verif-cat">{imageAiAnalysis.category}</span>
                         </div>
                         <p className="verif-desc">{imageAiAnalysis.summary}</p>
                         <div className="detected-tags">
                           {imageAiAnalysis.detectedObjects.map((obj, i) => (
-                            <span key={i} className="detected-pill">🎯 {obj}</span>
+                            <span key={i} className="detected-pill">{obj}</span>
                           ))}
                         </div>
                       </div>
@@ -994,15 +1213,13 @@ function App() {
                 )}
               </div>
 
-              {/* =========================================================================
-                 LIVE DEVICE CAMERA VIEWFINDER MODAL
-                 ========================================================================= */}
+              {/* LIVE DEVICE CAMERA VIEWFINDER MODAL */}
               {isCameraModalOpen && (
                 <div className="camera-modal-overlay" onClick={closeLiveCamera}>
                   <div className="camera-modal-content" onClick={(e) => e.stopPropagation()}>
                     <div className="camera-modal-header">
                       <div className="camera-title-block">
-                        <strong>📸 Live Incident Camera Viewfinder</strong>
+                        <strong>Live Incident Camera Viewfinder</strong>
                         <small>Anti-Fraud Ground Verification • GPS Tagged</small>
                       </div>
                       <button type="button" className="camera-close-btn" onClick={closeLiveCamera}>✕</button>
@@ -1010,13 +1227,13 @@ function App() {
 
                     {cameraError ? (
                       <div className="camera-error-box">
-                        <p>⚠️ {cameraError}</p>
+                        <p>{cameraError}</p>
                         <button 
                           type="button" 
                           className="submit-btn" 
                           onClick={() => simulateLiveCameraSnap('garbage')}
                         >
-                          ⚡ Use Instant Simulated Camera Snapshot
+                          Use Instant Simulated Camera Snapshot
                         </button>
                       </div>
                     ) : (
@@ -1036,8 +1253,8 @@ function App() {
                           <div className="hud-corner bottom-right"></div>
                           <div className="hud-center-cross"></div>
                           <div className="hud-info-badge">
-                            <span>📍 GPS: {gpsCoords ? `${gpsCoords.lat.toFixed(4)}° N, ${gpsCoords.lng.toFixed(4)}° E` : 'Geo-Tagged'}</span>
-                            <span>⏱️ {new Date().toLocaleTimeString()}</span>
+                            <span>GPS: {gpsCoords ? `${gpsCoords.lat.toFixed(4)}° N, ${gpsCoords.lng.toFixed(4)}° E` : 'Geo-Tagged'}</span>
+                            <span>Time: {new Date().toLocaleTimeString()}</span>
                           </div>
                         </div>
                       </div>
@@ -1059,7 +1276,7 @@ function App() {
                           className="camera-snap-trigger-btn"
                           onClick={captureFromCamera}
                         >
-                          🔘 Capture Incident Photo
+                          Capture Incident Photo
                         </button>
                       )}
                     </div>
@@ -1070,7 +1287,7 @@ function App() {
               {/* Location Confirmation Section */}
               <div className="location-confirm-section">
                 <div className="loc-section-header">
-                  <span className="loc-title">📍 {t.locConfirmTitle}</span>
+                  <span className="loc-title">{t.locConfirmTitle}</span>
                   <span className="loc-sub">{t.locConfirmSub}</span>
                 </div>
 
@@ -1152,7 +1369,6 @@ function App() {
                 {/* Confirmed Location Review Card */}
                 <div className="confirmed-loc-card">
                   <div className="conf-row">
-                    <span className="conf-icon">📌</span>
                     <div className="conf-detail">
                       <strong>{t.confirmedSpotLabel}</strong>
                       <p>{activeLoc.title}</p>
@@ -1161,20 +1377,20 @@ function App() {
 
                   <div className="conf-meta">
                     <span className="conf-pill">{activeLoc.tag}</span>
-                    <span className="conf-pill">🏛️ {activeLoc.routing}</span>
+                    <span className="conf-pill">{activeLoc.routing}</span>
                   </div>
 
                   {/* Live Google Map Interactive View Widget */}
                   <div className="google-map-embed-wrapper">
                     <div className="map-embed-header">
-                      <span>🗺️ Live Google Map & Satellite Fix:</span>
+                      <span>Satellite & Geospatial Mapping:</span>
                       <a 
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeLoc.title)}`}
                         target="_blank" 
                         rel="noreferrer"
                         className="open-gmaps-link"
                       >
-                        ↗ Open in Google Maps
+                        Open in Google Maps ➔
                       </a>
                     </div>
                     <iframe
@@ -1209,3 +1425,4 @@ function App() {
 }
 
 export default App;
+

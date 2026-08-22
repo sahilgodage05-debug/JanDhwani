@@ -88,6 +88,18 @@ body, html {
   border-color: #ff5722 !important;
 }
 
+.archive-nav-btn-highlight {
+  background: rgba(46, 125, 50, 0.1) !important;
+  color: #2e7d32 !important;
+  border: 1px solid #81c784 !important;
+}
+
+.archive-nav-btn-highlight.active {
+  background: #2e7d32 !important;
+  color: #ffffff !important;
+  border-color: #2e7d32 !important;
+}
+
 .user-status-pill {
   display: flex;
   align-items: center;
@@ -1211,9 +1223,19 @@ textarea:focus {
   animation: fadeIn 0.35s ease;
 }
 
-.success-icon {
-  font-size: 38px;
-  margin-bottom: 6px;
+.success-icon-badge {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 10px auto;
+  border-radius: 50%;
+  background: rgba(46, 125, 50, 0.12);
+  border: 1.5px solid #2e7d32;
+  color: #2e7d32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
 }
 
 .success-screen h2 {
@@ -1388,3 +1410,157 @@ textarea:focus {
 .secondary-btn:hover {
   background: var(--brown-25) !important;
 }
+
+/* Instant Dual-Role Resolution Card in Success Screen */
+.instant-resolution-card {
+  background: #fafafa;
+  border: 1.5px solid #ffcc80;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 14px 0;
+  text-align: left;
+}
+
+.instant-res-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.instant-res-header span {
+  font-size: 12px;
+  font-weight: 800;
+  color: #e65100;
+}
+
+.instant-res-header small {
+  font-size: 11px;
+  color: #795548;
+}
+
+.instant-res-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 540px) {
+  .instant-res-btn-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.instant-res-btn-citizen {
+  background: rgba(46, 125, 50, 0.12);
+  border: 1.5px solid #2e7d32;
+  color: #1b5e20;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.instant-res-btn-citizen:hover {
+  background: #2e7d32;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.instant-res-btn-authority {
+  background: rgba(230, 81, 0, 0.12);
+  border: 1.5px solid #e65100;
+  color: #bf360c;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.instant-res-btn-authority:hover {
+  background: #e65100;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* =========================================================================
+   OFFICIAL GOVERNMENT OF INDIA EMBLEM & NATIONAL HEADER
+   ========================================================================= */
+.gov-emblem-header-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.gov-emblem-header-wrapper.center-emblem {
+  justify-content: center;
+  text-align: left;
+}
+
+.emblem-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(62, 39, 35, 0.15));
+}
+
+.gov-text-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.gov-hindi-line {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--brown-900);
+  letter-spacing: 0.3px;
+}
+
+.gov-english-line {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brown-700);
+  letter-spacing: 0.2px;
+}
+
+.gov-dept-subline {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--brown-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.compact-emblem .gov-hindi-line {
+  font-size: 12px;
+}
+
+.compact-emblem .gov-english-line {
+  font-size: 10.5px;
+}
+
+.dark-theme-emblem .gov-hindi-line {
+  color: #ffd54f;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.dark-theme-emblem .gov-english-line {
+  color: #efebe9;
+}
+
+.dark-theme-emblem .gov-dept-subline {
+  color: #bcaaa4;
+}
+
+.dark-theme-emblem .emblem-icon {
+  filter: drop-shadow(0 2px 8px rgba(255, 213, 79, 0.35));
+}
+
+
