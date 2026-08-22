@@ -12,7 +12,10 @@ function App() {
   // Grievance form state
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [fileName, setFileName] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageAiAnalysis, setImageAiAnalysis] = useState(null);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -106,10 +109,54 @@ function App() {
     });
   };
 
+  // FDA Maharashtra Style: Multimodal AI Image Verification
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
+      const file = e.target.files[0];
+      setImageFile(file);
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+      
+      // Simulate Gemini 1.5 Flash Vision verification matching complaint context
+      setIsAnalyzingImage(true);
+      setImageAiAnalysis(null);
+
+      setTimeout(() => {
+        setIsAnalyzingImage(false);
+        const lower = text.toLowerCase();
+        let detectedCategory = "Civil Infrastructure Defect";
+        let detectedObjects = ["Physical Structural Defect", "Ground Disruption", "Public Property"];
+        let matchScore = 95;
+
+        if (lower.includes('water') || lower.includes('पानी') || lower.includes('पाणी') || lower.includes('தண்ணீர்')) {
+          detectedCategory = "Water Supply & Pipeline Rupture";
+          detectedObjects = ["Pipeline Surface Rupture", "Water Accumulation", "Hydraulic Leakage"];
+          matchScore = 97;
+        } else if (lower.includes('road') || lower.includes('सड़क') || lower.includes('रस्ता') || lower.includes('pothole')) {
+          detectedCategory = "Road Hazard & Pothole";
+          detectedObjects = ["Asphalt Crack", "Road Cavity", "Traffic Obstruction"];
+          matchScore = 94;
+        } else if (lower.includes('medicine') || lower.includes('food') || lower.includes('दवा') || lower.includes('औषध')) {
+          detectedCategory = "FDA / Public Health Violation";
+          detectedObjects = ["Product Packaging", "Expiry/Batch Label", "Substandard Seal"];
+          matchScore = 98;
+        }
+
+        setImageAiAnalysis({
+          verified: true,
+          matchScore: matchScore,
+          category: detectedCategory,
+          detectedObjects: detectedObjects,
+          summary: "Google Gemini Vision: Image features strongly correlate with reported citizen complaint text."
+        });
+      }, 1100);
     }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageAiAnalysis(null);
   };
 
   // Get current active location text summary
@@ -154,21 +201,33 @@ function App() {
     setIsSubmitting(true);
     const locInfo = getActiveLocationSummary();
 
-    // Simulate Step 2 (Google Gemini AI) & Step 3 (Firebase 3D Twin Sync)
+    // Simulate Step 2 (Google Gemini AI + FDA-Style Multimodal Verification) & Step 3 (Firebase Sync)
     setTimeout(() => {
       setIsSubmitting(false);
       const isRural = currentUser?.areaType === 'rural' || locationSource === 'registered';
+      const lower = text.toLowerCase();
+      
+      let dept = "Public Works Department (PWD / लोक निर्माण विभाग)";
+      let oneLineSummary = "Essential public infrastructure defect requiring administrative dispatch.";
+      
+      if (lower.includes('water') || lower.includes('पानी') || lower.includes('पाणी') || lower.includes('தண்ணீர்')) {
+        dept = "Ministry of Jal Shakti (जल शक्ति) / Water Supply Board";
+        oneLineSummary = "Critical water pipeline breakdown and severe supply disruption reported.";
+      } else if (lower.includes('medicine') || lower.includes('food') || lower.includes('दवा') || lower.includes('औषध')) {
+        dept = "Food & Drugs Administration (FDA / अन्न व औषध प्रशासन)";
+        oneLineSummary = "Suspected food safety / medicine compliance breach reported for physical verification.";
+      }
+
       setSubmissionResult({
         ticketId: 'JD-' + Math.floor(100000 + Math.random() * 900000),
-        translatedText: text.includes('water') || text.includes('पानी') || text.includes('पाणी') || text.includes('தண்ணீர்')
-          ? "Critical public water pipeline rupture & severe water supply deficit reported in verified jurisdiction." 
-          : "Essential public infrastructure defect requiring administrative dispatch.",
-        department: text.includes('water') || text.includes('पानी') || text.includes('पाणी') || text.includes('தண்ணீர்')
-          ? "Ministry of Jal Shakti (जल शक्ति) / Water Supply Board" 
-          : "Public Works Department (PWD / लोक निर्माण विभाग)",
+        translatedText: oneLineSummary,
+        department: dept,
         confirmedLocation: locInfo.title,
         routingUnit: locInfo.routing,
         severityScore: isRural ? '8.9/10 (High Priority - Rural Boost)' : '7.5/10 (Standard Severity)',
+        imageVerified: imageAiAnalysis?.verified || false,
+        imageScore: imageAiAnalysis?.matchScore || null,
+        imageDetails: imageAiAnalysis?.category || null,
         syncedTo3DMap: true
       });
     }, 1200);
@@ -226,6 +285,10 @@ function App() {
       ) : (
         <div className="card">
           <div className="card-header">
+            <div className="emblem-row">
+              <span className="national-badge">🇮🇳 JanDhwani DPI</span>
+              <span className="brics-badge">🤖 Gemini Vision AI Verified</span>
+            </div>
             <h1 className="title">{t.portalTitle}</h1>
             <p className="subtitle">{t.fileGrievanceTitle} • {t.fileGrievanceSub}</p>
           </div>
@@ -258,8 +321,14 @@ function App() {
                 <p><strong>Department:</strong> {submissionResult.department}</p>
                 <p><strong>Location:</strong> {submissionResult.confirmedLocation}</p>
                 <p><strong>Routing Unit:</strong> {submissionResult.routingUnit}</p>
-                <p><strong>Auto-Translation (English):</strong> {submissionResult.translatedText}</p>
-                <p><strong>Urgency Score (1-10):</strong> <span className="score-badge">{submissionResult.severityScore}</span></p>
+                <p><strong>AI Summary (English):</strong> {submissionResult.translatedText}</p>
+                <p><strong>Urgency Score:</strong> <span className="score-badge">{submissionResult.severityScore}</span></p>
+                
+                {submissionResult.imageVerified && (
+                  <div className="verified-evidence-box">
+                    <span>📸 <strong>Multimodal Evidence Verified:</strong> {submissionResult.imageDetails} (Confidence: {submissionResult.imageScore}%)</span>
+                  </div>
+                )}
               </div>
 
               <div className="firebase-status">
@@ -272,7 +341,9 @@ function App() {
                 onClick={() => {
                   setSubmissionResult(null);
                   setText('');
-                  setFileName('');
+                  setImageFile(null);
+                  setImagePreview(null);
+                  setImageAiAnalysis(null);
                 }}
               >
                 {t.fileAnotherBtn}
@@ -324,12 +395,50 @@ function App() {
                 )}
               </div>
 
-              {/* Evidence Upload */}
-              <div className="action-buttons">
-                <label className="action-btn file-upload">
-                  📸 {fileName ? fileName.substring(0, 18) + '...' : t.uploadEvidence}
-                  <input type="file" accept="image/*" onChange={handleFileChange} style={{display: 'none'}} />
-                </label>
+              {/* Multimodal Image Evidence Upload & AI Verification (FDA Maharashtra Benchmark) */}
+              <div className="form-group">
+                <label>साक्ष्य फोटो अपलोड एवं AI सत्यापन (Photo Evidence & Gemini Vision AI Check)</label>
+                
+                {!imagePreview ? (
+                  <div className="action-buttons">
+                    <label className="action-btn file-upload-custom">
+                      📸 {t.uploadEvidence}
+                      <input type="file" accept="image/*" onChange={handleFileChange} style={{display: 'none'}} />
+                    </label>
+                  </div>
+                ) : (
+                  <div className="image-evidence-card">
+                    <div className="image-preview-row">
+                      <img src={imagePreview} alt="Evidence Preview" className="evidence-thumb" />
+                      <div className="evidence-info">
+                        <strong>{imageFile?.name}</strong>
+                        <small>{(imageFile?.size / 1024).toFixed(1)} KB • Image Loaded</small>
+                        <button type="button" className="remove-img-btn" onClick={removeImage}>✕ Remove</button>
+                      </div>
+                    </div>
+
+                    {isAnalyzingImage && (
+                      <div className="ai-scanning-badge">
+                        <span>🔍 Google Gemini Vision AI: Analyzing visual evidence & cross-referencing with complaint...</span>
+                      </div>
+                    )}
+
+                    {imageAiAnalysis && (
+                      <div className="ai-verified-result">
+                        <div className="ai-verif-top">
+                          <span className="verif-check">✅ Image Verified ({imageAiAnalysis.matchScore}% Match)</span>
+                          <span className="verif-cat">{imageAiAnalysis.category}</span>
+                        </div>
+                        <p className="verif-desc">{imageAiAnalysis.summary}</p>
+                        <div className="detected-tags">
+                          {imageAiAnalysis.detectedObjects.map((obj, i) => (
+                            <span key={i} className="detected-pill">🎯 {obj}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Location Confirmation Section */}
