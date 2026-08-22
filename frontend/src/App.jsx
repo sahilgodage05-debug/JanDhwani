@@ -770,7 +770,8 @@ function App() {
   }
 
   return (
-    <div className={activeTab === '3d_twin' || activeTab === 'resolved_archive' ? 'container container-wide' : 'main-layout'} style={activeTab !== '3d_twin' && activeTab !== 'resolved_archive' ? { maxWidth: '1400px', margin: '0 auto', padding: '20px' } : {}}>
+    <div className="app-main-bg">
+      <div className={activeTab === '3d_twin' || activeTab === 'resolved_archive' ? 'container container-wide' : 'main-layout'} style={activeTab !== '3d_twin' && activeTab !== 'resolved_archive' ? { maxWidth: '1400px', margin: '0 auto', padding: '20px' } : {}}>
       {/* Top Portal Navigation */}
       <nav className="portal-nav">
         <div className="nav-buttons">
@@ -1435,6 +1436,7 @@ function App() {
           <Map3D />
         </div>
       )}
+      </div>
     </div>
   );
 }
