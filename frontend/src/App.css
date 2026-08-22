@@ -1720,9 +1720,44 @@ textarea:focus {
 }
 
 .app-main-bg .card {
-  background: rgba(255, 255, 255, 0.90);
-  backdrop-filter: blur(8px);
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  border: none;
 }
+
+/* Ensure text is readable on background */
+.app-main-bg .form-card label,
+.app-main-bg .form-card h2,
+.app-main-bg .form-card .title,
+.app-main-bg .form-card .subtitle,
+.app-main-bg .form-card span {
+  color: #fff;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.6);
+}
+
+.maps-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 1400px;
+  gap: 20px;
+  margin-top: 20px;
+  height: 600px;
+}
+
+.maps-container > * {
+  flex: 1;
+}
+
+.google-map-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
 .app-main-bg .portal-nav {
   background: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(8px);

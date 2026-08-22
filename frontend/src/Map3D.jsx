@@ -48,7 +48,7 @@ function MarkerTooltip({ complaint, color }) {
   );
 }
 
-function IndiaMap() {
+function IndiaMap({ onMarkerClick }) {
   const [geoData, setGeoData] = useState(null);
   const [districtData, setDistrictData] = useState(null);
   const { camera } = useThree();
@@ -180,7 +180,7 @@ function IndiaMap() {
         return (
           <group key={complaint.id} position={[x, 0.3, y]}>
             {/* Slim Marker */}
-            <mesh rotation={[0, 0, 0]}>
+            <mesh rotation={[0, 0, 0]} onClick={(e) => { e.stopPropagation(); if(onMarkerClick) onMarkerClick(complaint); }} onPointerOver={(e) => document.body.style.cursor='pointer'} onPointerOut={(e) => document.body.style.cursor='default'}>
               <boxGeometry args={[0.15, 0.6, 0.15]} />
               <meshStandardMaterial 
                 color={color} 
@@ -203,7 +203,7 @@ function IndiaMap() {
   );
 }
 
-export default function Map3D() {
+export default function Map3D({ onMarkerClick }) {
   return (
     <div className="map-container">
       <div className="map-header">
@@ -224,7 +224,7 @@ export default function Map3D() {
             minPolarAngle={Math.PI / 4} 
             maxPolarAngle={Math.PI / 3} 
           />
-          <IndiaMap />
+          <IndiaMap onMarkerClick={onMarkerClick} />
         </Canvas>
       </div>
     </div>
