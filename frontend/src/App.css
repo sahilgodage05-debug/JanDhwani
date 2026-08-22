@@ -1692,13 +1692,10 @@ textarea:focus {
   filter: drop-shadow(0 2px 8px rgba(255, 213, 79, 0.35));
 }
 
-
- 
- . l o g i n - p a g e - b g   {  
-     b a c k g r o u n d - i m a g e :   u r l ( ' . / a s s e t s / l o g i n - b g . p n g ' ) ;  
-     b a c k g r o u n d - s i z e :   c o v e r ;  
-     b a c k g r o u n d - p o s i t i o n :   c e n t e r ;  
-     b a c k g r o u n d - r e p e a t :   n o - r e p e a t ;  
-     b a c k g r o u n d - c o l o r :   # f c f 8 f 5 ;  
- }  
- 
+.login-page-bg {
+  background-image: url('./assets/login-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #fcf8f5;
+}
