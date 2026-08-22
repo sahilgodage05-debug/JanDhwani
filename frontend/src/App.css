@@ -1693,3 +1693,12 @@ textarea:focus {
 }
 
 
+ 
+ . l o g i n - p a g e - b g   {  
+     b a c k g r o u n d - i m a g e :   u r l ( ' . / a s s e t s / l o g i n - b g . p n g ' ) ;  
+     b a c k g r o u n d - s i z e :   c o v e r ;  
+     b a c k g r o u n d - p o s i t i o n :   c e n t e r ;  
+     b a c k g r o u n d - r e p e a t :   n o - r e p e a t ;  
+     b a c k g r o u n d - c o l o r :   # f c f 8 f 5 ;  
+ }  
+ 

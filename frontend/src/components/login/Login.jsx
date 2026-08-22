@@ -8,7 +8,7 @@ import {
 } from '../indiaData';
 import { VALIDATION_RULES } from '../validators';
 import { UI_STRINGS } from '../translations';
-import GovernmentEmblem from './GovernmentEmblem';
+import GovernmentEmblem from '../GovernmentEmblem';
 import './Login.css';
 
 function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageChange }) {

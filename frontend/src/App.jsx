@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import Login from './components/Login';
+import Login from './components/login/Login';
 import DigitalTwinMap from './components/DigitalTwinMap';
 import ResolvedArchive from './components/ResolvedArchive';
 import GovernmentEmblem from './components/GovernmentEmblem';
@@ -758,7 +758,7 @@ function App() {
 
   if (activeTab === 'login') {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fcf8f5' }}>
+      <div className="login-page-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Login 
           activeLanguage={selectedLanguage}
           onLanguageChange={(newLang) => setSelectedLanguage(newLang)}
