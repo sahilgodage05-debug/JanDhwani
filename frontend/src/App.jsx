@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import Login from './components/Login';
+import DigitalTwinMap from './components/DigitalTwinMap';
 import { ALL_LANGUAGES, STATES_AND_DISTRICTS } from './indiaData';
 import { UI_STRINGS } from './translations';
 import './App.css';
@@ -7,7 +8,7 @@ import './App.css';
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('en-IN');
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'grievance'
+  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'grievance' | '3d_twin'
   
   // Grievance form state
   const [text, setText] = useState('');
@@ -205,7 +206,7 @@ function App() {
     setIsSubmitting(true);
     const locInfo = getActiveLocationSummary();
 
-    // Simulate Step 2 (Google Gemini AI + FDA-Style Multimodal Verification) & Step 3 (Firebase Sync)
+    // Simulate Step 2 (Google Gemini AI) & Step 3 (Firebase Sync to 3D Digital Twin)
     setTimeout(() => {
       setIsSubmitting(false);
       const isRural = currentUser?.areaType === 'rural' || locationSource === 'registered';
@@ -241,7 +242,7 @@ function App() {
   const availableDistricts = STATES_AND_DISTRICTS[customLocation.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
   return (
-    <div className="container">
+    <div className={activeTab === '3d_twin' ? 'container container-wide' : 'container'}>
       {/* Top Portal Navigation */}
       <nav className="portal-nav">
         <div className="nav-buttons">
@@ -250,7 +251,7 @@ function App() {
             className={`nav-btn ${activeTab === 'login' ? 'active' : ''}`}
             onClick={() => setActiveTab('login')}
           >
-            {currentUser ? '👤 ' + (t.fullName || 'Citizen') : '🌐 ' + t.portalTitle}
+            {currentUser ? '👤 ' + (t.fullName || 'Citizen Profile') : '🌐 ' + t.portalTitle}
           </button>
           <button 
             type="button"
@@ -258,6 +259,13 @@ function App() {
             onClick={() => setActiveTab('grievance')}
           >
             ✍️ {t.fileGrievanceTitle}
+          </button>
+          <button 
+            type="button"
+            className={`nav-btn twin-nav-btn-highlight ${activeTab === '3d_twin' ? 'active' : ''}`}
+            onClick={() => setActiveTab('3d_twin')}
+          >
+            🎮 3D Digital Twin Map (Live)
           </button>
         </div>
 
@@ -274,12 +282,19 @@ function App() {
             </button>
           </div>
         ) : (
-          <span className="guest-badge">Anonymous Mode</span>
+          <span className="guest-badge">Citizen Access</span>
         )}
       </nav>
 
       {/* Main Content Area */}
-      {activeTab === 'login' ? (
+      {activeTab === '3d_twin' ? (
+        /* STEP 4: 3D DIGITAL TWIN GAMIFIED DASHBOARD (Three.js) */
+        <DigitalTwinMap 
+          latestGrievance={submissionResult}
+          onBackToPortal={() => setActiveTab('grievance')}
+        />
+      ) : activeTab === 'login' ? (
+        /* STEP 1: CITIZEN REGISTRATION & LOGIN */
         <Login 
           activeLanguage={selectedLanguage}
           onLanguageChange={(newLang) => setSelectedLanguage(newLang)}
@@ -287,6 +302,7 @@ function App() {
           onContinueAsGuest={() => setActiveTab('grievance')}
         />
       ) : (
+        /* STEP 1 & 2: GRIEVANCE GATEWAY & GEMINI PROCESSING */
         <div className="card">
           <div className="card-header">
             <div className="emblem-row">
@@ -339,9 +355,20 @@ function App() {
                 <span>{t.syncedBanner}</span>
               </div>
 
+              {/* 1-Click Launch into 3D Digital Twin Map */}
+              <div className="twin-launch-card">
+                <button 
+                  type="button" 
+                  className="view-3d-beacon-btn"
+                  onClick={() => setActiveTab('3d_twin')}
+                >
+                  🎮 View Live Glowing Beacon on 3D Digital Twin Map ➔
+                </button>
+              </div>
+
               <button 
                 type="button" 
-                className="submit-btn" 
+                className="submit-btn secondary-btn" 
                 onClick={() => {
                   setSubmissionResult(null);
                   setText('');

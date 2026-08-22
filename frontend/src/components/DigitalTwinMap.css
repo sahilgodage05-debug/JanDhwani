@@ -1,0 +1,418 @@
+/* JanDhwani 3D Digital Twin Platform - Dark Cyber & Governance Console Styling */
+.digital-twin-wrapper {
+  position: relative;
+  width: 100%;
+  height: 85vh;
+  min-height: 600px;
+  background: #18110e;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  border: 1.5px solid var(--brown-700);
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.35s ease;
+}
+
+.twin-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: rgba(24, 17, 14, 0.92);
+  border-bottom: 1px solid var(--brown-700);
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.twin-back-btn {
+  background: var(--brown-800);
+  border: 1px solid var(--brown-600);
+  color: #efebe9;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.twin-back-btn:hover {
+  background: var(--brown-700);
+  color: #ffffff;
+}
+
+.twin-titles h2 {
+  margin: 0;
+  font-size: 17px;
+  color: #efebe9;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.twin-titles p {
+  margin: 2px 0 0 0;
+  font-size: 11px;
+  color: var(--brown-200);
+}
+
+.brics-mode-toggle {
+  display: flex;
+  background: var(--brown-900);
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--brown-700);
+  gap: 4px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--brown-200);
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+  background: var(--brown-600);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* 3D Canvas Viewport */
+.twin-canvas-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.twin-canvas-container:active {
+  cursor: grabbing;
+}
+
+.twin-canvas-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* HUD Overlay Elements */
+.twin-hud-overlay {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.hud-badge {
+  background: rgba(30, 20, 16, 0.85);
+  border: 1px solid var(--brown-600);
+  color: #efebe9;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(6px);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff5722;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ff5722;
+  animation: pulseBeacon 1.2s infinite;
+}
+
+@keyframes pulseBeacon {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.hud-legend {
+  background: rgba(30, 20, 16, 0.85);
+  border: 1px solid var(--brown-700);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  color: var(--brown-100);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  backdrop-filter: blur(6px);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-item .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-item .dot.critical { background: #ff2244; box-shadow: 0 0 6px #ff2244; }
+.legend-item .dot.high { background: #ff6622; box-shadow: 0 0 6px #ff6622; }
+.legend-item .dot.moderate { background: #ffaa00; box-shadow: 0 0 6px #ffaa00; }
+
+/* Filter Bar at the Bottom */
+.twin-filter-bar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background: rgba(24, 17, 14, 0.9);
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--brown-600);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+.filter-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--brown-200);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  background: var(--brown-800);
+  color: #efebe9;
+}
+
+.filter-btn.active {
+  background: var(--brown-600);
+  color: #ffffff;
+  border-color: var(--brown-400);
+}
+
+/* =========================================================================
+   SCI-FI GAME-STYLE MODAL INSPECTOR
+   ========================================================================= */
+.sci-fi-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 16px;
+  animation: fadeIn 0.25s ease;
+}
+
+.sci-fi-modal {
+  background: #241814;
+  border: 1.5px solid var(--brown-500);
+  border-radius: 20px;
+  max-width: 560px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 87, 34, 0.15);
+  color: #efebe9;
+  animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-badge-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ticket-id-tag {
+  background: var(--brown-900);
+  border: 1px solid var(--brown-600);
+  color: var(--brown-100);
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.urgency-tag {
+  background: #ff5722;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.area-type-tag {
+  background: var(--brown-800);
+  color: var(--brown-150);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  color: var(--brown-200);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.close-modal-btn:hover {
+  color: #ffffff;
+}
+
+.modal-title {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.gemini-ai-summary-box {
+  background: rgba(45, 30, 24, 0.9);
+  border: 1px solid var(--brown-600);
+  border-left: 4px solid #ff7744;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.ai-summary-header {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ff9966;
+  margin-bottom: 4px;
+}
+
+.ai-summary-text {
+  margin: 0;
+  font-size: 13px;
+  color: #f7f3f0;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.modal-grid-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.modal-cell {
+  background: var(--brown-900);
+  border: 1px solid var(--brown-700);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.modal-cell small {
+  display: block;
+  font-size: 10px;
+  color: var(--brown-200);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.modal-cell strong {
+  display: block;
+  font-size: 11.5px;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.modal-evidence-banner {
+  background: rgba(62, 39, 35, 0.6);
+  border: 1px solid var(--brown-600);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #efebe9;
+  margin-bottom: 16px;
+}
+
+.modal-footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-dispatch-btn {
+  flex: 1.2;
+  background: #ff5722;
+  color: #ffffff;
+  border: none;
+  padding: 11px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.action-dispatch-btn:hover {
+  background: #f4511e;
+  transform: translateY(-1px);
+}
+
+.action-sms-btn {
+  flex: 1;
+  background: var(--brown-800);
+  border: 1px solid var(--brown-600);
+  color: #efebe9;
+  padding: 11px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-sms-btn:hover {
+  background: var(--brown-700);
+}
