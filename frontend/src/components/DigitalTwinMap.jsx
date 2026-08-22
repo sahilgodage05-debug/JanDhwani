@@ -125,6 +125,35 @@ const HIERARCHICAL_HOTSPOTS = [
     country: 'India'
   },
   {
+    id: 'JD-942110',
+    title: 'Solid Waste Pileup & Overflowing Dump',
+    summary: 'Extensive municipal garbage accumulation across 400m residential lane with uncollected bio-waste for 6 days.',
+    department: 'Municipal Solid Waste Management & Sanitation Dept',
+    deptKey: 'sanitation_swm',
+    state: 'Maharashtra',
+    district: 'Pune',
+    tehsil: 'Haveli Taluka',
+    wardOrPanchayat: 'Wagholi Sector 4',
+    landmark: 'Behind Weekly Vegetable Market',
+    coords: { x: -0.4, z: 0.8, lat: 18.5810, lng: 73.9850 },
+    urgency: 8.8,
+    baseUrgency: 7.6,
+    povertyBoost: '+1.2 (Sanitation Deficit)',
+    areaType: 'Rural (Gram Panchayat)',
+    routing: 'Sanitary Inspector & Gram Panchayat Secretary',
+    citizen: 'Sunita Patil (UID: 9822114455)',
+    imageVerified: true,
+    imageConfidence: 98,
+    coreDefect: 'Uncollected Municipal Solid Waste & Rotten Bio-Waste Pileup',
+    affectedScope: '8,500+ residents, vegetable vendors & pedestrians',
+    riskLevel: 'Dengue/Malaria vector outbreak risk & toxic airborne stench',
+    duration: '6 days unaddressed',
+    actionRequired: 'Deploy mechanical refuse compactor and chlorine disinfection',
+    status: 'Compactor Truck Dispatched',
+    timestamp: '8 mins ago',
+    country: 'India'
+  },
+  {
     id: 'JD-633019',
     title: 'BRICS Node: Substandard Pharmaceuticals',
     summary: 'Unregistered batch of counterfeit antibiotics intercepted in retail pharmacy.',
@@ -159,6 +188,7 @@ const GOV_LEVELS = [
 
 const DEPARTMENTS = [
   { id: 'all', label: 'All Departments' },
+  { id: 'sanitation_swm', label: '🧹 Solid Waste & Sanitation' },
   { id: 'jal_shakti', label: '💧 Jal Shakti (Water)' },
   { id: 'pwd', label: '🛣️ PWD (Roads & Bridges)' },
   { id: 'power', label: '⚡ Power & Energy' },
@@ -186,16 +216,17 @@ function DigitalTwinMap({ latestGrievance, onBackToPortal }) {
   // Integrate newly dispatched citizen grievance dynamically
   useEffect(() => {
     if (latestGrievance && !hotspots.some(h => h.id === latestGrievance.ticketId)) {
-      const isWater = latestGrievance.department?.toLowerCase().includes('jal') || latestGrievance.department?.toLowerCase().includes('water');
-      const isHealth = latestGrievance.department?.toLowerCase().includes('fda') || latestGrievance.department?.toLowerCase().includes('health');
-      const deptKey = isWater ? 'jal_shakti' : (isHealth ? 'health_fda' : 'pwd');
-
       const newSpot = {
         id: latestGrievance.ticketId,
-        title: latestGrievance.translatedText?.substring(0, 42) + '...' || 'Citizen Priority Grievance',
+        title: latestGrievance.coreDefect || latestGrievance.translatedText?.substring(0, 42) + '...' || 'Citizen Priority Grievance',
         summary: latestGrievance.translatedText || 'Citizen reported public grievance requiring immediate administrative dispatch.',
         department: latestGrievance.department,
-        deptKey: deptKey,
+        deptKey: latestGrievance.deptKey || 'pwd',
+        coreDefect: latestGrievance.coreDefect || 'Civic Infrastructure Defect',
+        affectedScope: latestGrievance.affectedScope || 'Local ward residents & surrounding sector',
+        riskLevel: latestGrievance.riskLevel || 'Public inconvenience & safety hazard',
+        duration: latestGrievance.duration || 'Unresolved issue reported by citizen',
+        actionRequired: latestGrievance.actionRequired || 'Emergency municipal inspection & work order dispatch',
         location: latestGrievance.confirmedLocation || 'Verified Jurisdiction',
         state: 'Maharashtra',
         district: 'Pune',
@@ -203,7 +234,7 @@ function DigitalTwinMap({ latestGrievance, onBackToPortal }) {
         wardOrPanchayat: 'Wagholi Panchayat',
         landmark: 'Near Local Water Reservoir',
         coords: { x: -0.55, z: 0.55, lat: 18.5793, lng: 73.9814 },
-        urgency: parseFloat(latestGrievance.severityScore) || 8.9,
+        urgency: latestGrievance.numericUrgency || parseFloat(latestGrievance.severityScore) || 8.9,
         baseUrgency: 7.5,
         povertyBoost: '+1.4 (Rural Boost)',
         areaType: 'Rural (Gram Panchayat)',

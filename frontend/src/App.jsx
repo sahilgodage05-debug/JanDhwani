@@ -306,54 +306,119 @@ function App() {
       
       let dept = "Public Works Department (PWD / लोक निर्माण विभाग)";
       let deptKey = "pwd";
-      let coreDefect = "Structural Infrastructure Defect";
-      let affectedScope = "Local ward residents and transit corridor";
-      let riskLevel = "Public safety hazard and transport disruption";
+      let coreDefect = "Civic Infrastructure Defect";
+      let affectedScope = "Local ward residents and transit zone";
+      let riskLevel = "Public inconvenience and civic hazard";
       let duration = "Persistent issue reported by citizens";
-      let actionRequired = "Emergency engineering inspection and work order issuance";
-      let oneLineSummary = "Essential public infrastructure defect requiring administrative dispatch.";
+      let actionRequired = "Physical inspection and administrative work order dispatch";
+      let oneLineSummary = "Civic infrastructure grievance requiring prompt administrative intervention.";
       let urgencyBase = 7.5;
 
-      if (lower.includes('water') || lower.includes('पानी') || lower.includes('पाणी') || lower.includes('pipeline') || lower.includes('tank') || lower.includes('जल') || lower.includes('தண்ணீர்') || lower.includes('குழாய்')) {
-        dept = "Ministry of Jal Shakti (जल शक्ति) & Power Supply Board";
+      // 1. GARBAGE, SOLID WASTE, SANITATION & SEWAGE (स्वच्छ भारत / घनकचरा)
+      if (
+        lower.includes('garbage') || lower.includes('trash') || lower.includes('waste') || 
+        lower.includes('dump') || lower.includes('litter') || lower.includes('debris') || 
+        lower.includes('smell') || lower.includes('stink') || lower.includes('sanitation') || 
+        lower.includes('clean') || lower.includes('sewer') || lower.includes('sewage') || 
+        lower.includes('drain') || lower.includes('drainage') || lower.includes('gutter') || 
+        lower.includes('dustbin') || lower.includes('कचरा') || lower.includes('कूड़ा') || 
+        lower.includes('गंदगी') || lower.includes('सफाई') || lower.includes('बदबू') || 
+        lower.includes('घाण') || lower.includes('दुर्गंधी') || lower.includes('गटार') || 
+        lower.includes('सांडपाणी') || lower.includes('कुப்பை') || lower.includes('చెత్త')
+      ) {
+        dept = "Municipal Solid Waste Management & Sanitation Dept (स्वच्छ भारत / घनकचरा व्यवस्थापन)";
+        deptKey = "sanitation_swm";
+        coreDefect = "Uncollected Solid Waste Accumulation & Open Garbage Dumping";
+        affectedScope = "Local residential colony, pedestrian walkways & public market";
+        riskLevel = "Vector-borne disease outbreak risk (Dengue/Malaria), toxic stench & civic biohazard";
+        duration = lower.includes('day') || lower.includes('दिन') || lower.includes('दिवस') ? "Unattended waste piling for multiple days" : "Continuous uncollected garbage pileup";
+        actionRequired = "Immediate dispatch of solid waste compactor vehicle, manual sweeping & disinfectant bleaching spray";
+        oneLineSummary = "Severe unmanaged solid waste accumulation and garbage dumping creating critical public health and sanitation hazards.";
+        urgencyBase = 8.6;
+      }
+      // 2. WATER SUPPLY & PIPELINES (जल शक्ति)
+      else if (
+        lower.includes('water') || lower.includes('pipeline') || lower.includes('tank') || 
+        lower.includes('leak') || lower.includes('tap') || lower.includes('drinking') || 
+        lower.includes('borewell') || lower.includes('पानी') || lower.includes('पाणी') || 
+        lower.includes('जल') || lower.includes('தண்ணீர்') || lower.includes('குழாய்') || 
+        lower.includes('नीरू')
+      ) {
+        dept = "Ministry of Jal Shakti (जल शक्ति) & Water Supply Board";
         deptKey = "jal_shakti";
-        coreDefect = "High-Pressure Drinking Water Conduit Rupture & Electrical Feeder Failure";
-        affectedScope = "14,000+ local residents & 3 adjoining village sectors";
-        riskLevel = "Acute potable water crisis, sanitation hazard & grid downtime";
-        duration = lower.includes('4') || lower.includes('चार') ? "4 consecutive days without administrative action" : "Extended multi-day disruption";
-        actionRequired = "Immediate deployment of Jal Shakti hydraulic repair team & emergency water tankers";
-        oneLineSummary = "Critical drinking water conduit breach and power blackout in residential block requiring urgent inter-departmental dispatch.";
-        urgencyBase = 8.8;
-      } else if (lower.includes('road') || lower.includes('सड़क') || lower.includes('रस्ता') || lower.includes('bridge') || lower.includes('pothole') || lower.includes('पुल')) {
-        dept = "Public Works Department (PWD / NHAI)";
-        deptKey = "pwd";
-        coreDefect = "Arterial Highway Structural Shear Crack & Road Cavity Formation";
-        affectedScope = "Inter-district vehicular corridor & emergency ambulance transit";
-        riskLevel = "Severe vehicular collision hazard & imminent bridge structural failure";
-        duration = "Progressive degradation with heavy monsoon runoff";
-        actionRequired = "Traffic diversion protocol & immediate structural reinforcement by Executive Engineer";
-        oneLineSummary = "Severe arterial highway bridge structural fissure posing critical vehicular collision and transit hazards.";
-        urgencyBase = 8.5;
-      } else if (lower.includes('medicine') || lower.includes('food') || lower.includes('दवा') || lower.includes('औषध') || lower.includes('hospital') || lower.includes('doctor')) {
-        dept = "Ministry of Health & Family Welfare (स्वास्थ्य एवं परिवार कल्याण)";
-        deptKey = "health_fda";
-        coreDefect = "Substandard Pharmaceutical Quality Compliance Breach";
-        affectedScope = "Primary Health Centre patient intake & retail consumer network";
-        riskLevel = "Acute public health threat, therapeutic failure & clinical risk";
-        duration = "Active commercial distribution identified";
-        actionRequired = "Immediate batch quarantine, sample forensic assay & regulatory audit";
-        oneLineSummary = "Suspected medicine quality compliance breach and public health risk reported for physical verification.";
-        urgencyBase = 9.2;
-      } else if (lower.includes('power') || lower.includes('electricity') || lower.includes('light') || lower.includes('बिजली') || lower.includes('वीज')) {
-        dept = "Ministry of Power & Energy (ऊर्जा एवं विद्युत मंडल)";
+        coreDefect = "High-Pressure Drinking Water Conduit Rupture & Supply Disruption";
+        affectedScope = "14,000+ local households & adjoining neighborhood sectors";
+        riskLevel = "Severe potable drinking water crisis & hydraulic contamination risk";
+        duration = lower.includes('4') || lower.includes('चार') ? "4 consecutive days without potable supply" : "Extended multi-day drinking water outage";
+        actionRequired = "Immediate deployment of Jal Shakti hydraulic repair team & emergency drinking water tankers";
+        oneLineSummary = "Critical drinking water conduit breach disrupting essential municipal water supply to local residents.";
+        urgencyBase = 8.9;
+      }
+      // 3. ELECTRICITY & POWER (ऊर्जा व वीज)
+      else if (
+        lower.includes('power') || lower.includes('electricity') || lower.includes('light') || 
+        lower.includes('transformer') || lower.includes('voltage') || lower.includes('blackout') || 
+        lower.includes('wire') || lower.includes('pole') || lower.includes('बिजली') || 
+        lower.includes('विद्युत') || lower.includes('वीज') || lower.includes('करंट') || 
+        lower.includes('மின்சாரம்')
+      ) {
+        dept = "Ministry of Power & State Electricity Distribution (ऊर्जा एवं विद्युत मंडल)";
         deptKey = "power";
         coreDefect = "Substation High-Voltage Transformer Overload & Feeder Tripping";
         affectedScope = "Community micro-grid, local healthcare units & street illumination";
-        riskLevel = "Blackout risk, hospital medical device power cutoff & commercial shutdown";
+        riskLevel = "Blackout risk, hospital medical equipment power cutoff & nighttime security hazard";
         duration = "Recurrent uncontrolled load-shedding and voltage fluctuations";
-        actionRequired = "Immediate mobile substation deployment & circuit breaker replacement";
-        oneLineSummary = "Critical power substation transformer failure causing extensive feeder grid downtime.";
-        urgencyBase = 8.4;
+        actionRequired = "Immediate mobile substation deployment, transformer inspection & circuit breaker replacement";
+        oneLineSummary = "Critical power substation transformer failure and low voltage causing extensive grid downtime.";
+        urgencyBase = 8.7;
+      }
+      // 4. ROADS, BRIDGES & HIGHWAYS (लोक निर्माण विभाग / PWD)
+      else if (
+        lower.includes('road') || lower.includes('pothole') || lower.includes('bridge') || 
+        lower.includes('highway') || lower.includes('asphalt') || lower.includes('pavement') || 
+        lower.includes('traffic') || lower.includes('सड़क') || lower.includes('रस्ता') || 
+        lower.includes('पुल') || lower.includes('खड्डा') || lower.includes('मार्ग') || 
+        lower.includes('சாலை')
+      ) {
+        dept = "Public Works Department (PWD / NHAI / लोक निर्माण विभाग)";
+        deptKey = "pwd";
+        coreDefect = "Arterial Highway Structural Shear Crack & Road Cavity Formation";
+        affectedScope = "Inter-district vehicular transit corridor & emergency ambulance routes";
+        riskLevel = "Severe vehicular collision hazard, tire blowout danger & structural collapse risk";
+        duration = "Progressive degradation with heavy vehicular load";
+        actionRequired = "Traffic diversion protocol, rapid asphalt resurfacing & structural reinforcement by Executive Engineer";
+        oneLineSummary = "Severe arterial road / highway structural fissure posing critical collision and transit hazards.";
+        urgencyBase = 8.5;
+      }
+      // 5. HEALTHCARE & MEDICINES (स्वास्थ्य व औषध)
+      else if (
+        lower.includes('medicine') || lower.includes('drug') || lower.includes('hospital') || 
+        lower.includes('doctor') || lower.includes('clinic') || lower.includes('nurse') || 
+        lower.includes('ambulance') || lower.includes('food') || lower.includes('दवा') || 
+        lower.includes('औषध') || lower.includes('रुग्णालय') || lower.includes('इस्पताल') || 
+        lower.includes('மருந்து')
+      ) {
+        dept = "Ministry of Health & Family Welfare (स्वास्थ्य एवं परिवार कल्याण)";
+        deptKey = "health_fda";
+        coreDefect = "Substandard Pharmaceutical Quality Compliance Breach & Healthcare Deficit";
+        affectedScope = "Primary Health Centre patient intake & retail consumer network";
+        riskLevel = "Acute public health threat, therapeutic failure & clinical complications";
+        duration = "Active distribution / unaddressed clinic deficiency";
+        actionRequired = "Immediate batch quarantine, medical audit & drug inspector seizure notice";
+        oneLineSummary = "Critical medicine quality compliance breach and public health risk reported for physical verification.";
+        urgencyBase = 9.2;
+      }
+      // 6. GENERAL CIVIC / SMART FALLBACK BASED ON EXACT CITIZEN TEXT
+      else {
+        dept = "District Municipal Administration & Grievance Cell (जिल्हा प्रशासन)";
+        deptKey = "pwd";
+        coreDefect = text.length > 50 ? text.substring(0, 48) + '...' : text;
+        affectedScope = "Local jurisdiction & surrounding public zone";
+        riskLevel = "Public distress and municipal service shortfall";
+        duration = "Reported unresolved citizen issue";
+        actionRequired = "District Magistrate / Municipal Officer zonal review and field inspection";
+        oneLineSummary = `Citizen reported ${text.length > 60 ? text.substring(0, 58) + '...' : text} requiring administrative dispatch.`;
+        urgencyBase = 7.8;
       }
 
       const finalUrgency = isRural ? Math.min(9.8, urgencyBase + 1.2).toFixed(1) : urgencyBase.toFixed(1);
