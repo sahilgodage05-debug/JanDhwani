@@ -537,7 +537,9 @@
 }
 
 .req {
-  color: var(--brown-800);
+  color: #d32f2f !important;
+  font-weight: 800;
+  margin-left: 3px;
 }
 
 .input-wrapper {

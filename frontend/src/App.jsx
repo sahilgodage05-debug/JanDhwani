@@ -1,15 +1,16 @@
 import { useState, useRef } from 'react';
 import Login from './components/Login';
 import { ALL_LANGUAGES, STATES_AND_DISTRICTS } from './indiaData';
+import { UI_STRINGS } from './translations';
 import './App.css';
 
 function App() {
+  const [selectedLanguage, setSelectedLanguage] = useState('hi-IN');
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'grievance'
   
   // Grievance form state
   const [text, setText] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('hi-IN');
   const [isRecording, setIsRecording] = useState(false);
   const [fileName, setFileName] = useState('');
   const [submissionResult, setSubmissionResult] = useState(null);
@@ -24,8 +25,12 @@ function App() {
     landmark: ''
   });
   const [isLocationConfirmed, setIsLocationConfirmed] = useState(true);
+  const [textError, setTextError] = useState(null);
   
   const recognitionRef = useRef(null);
+
+  // Active translation dictionary
+  const t = UI_STRINGS[selectedLanguage] || UI_STRINGS['hi-IN'] || UI_STRINGS['en-IN'];
 
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
@@ -67,6 +72,7 @@ function App() {
     recognitionRef.current.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setText(prevText => (prevText ? prevText + ' ' + transcript : transcript));
+      setTextError(null);
       setIsRecording(false);
     };
 
@@ -111,7 +117,7 @@ function App() {
     if (locationSource === 'registered' && currentUser) {
       return {
         title: `${currentUser.panchayatOrWard || 'Jurisdiction'}, ${currentUser.tehsil || ''}, ${currentUser.district}, ${currentUser.state}`,
-        tag: currentUser.areaType === 'rural' ? 'Rural (Gram Panchayat)' : 'Urban (Municipal Ward)',
+        tag: currentUser.areaType === 'rural' ? t.rural : t.urban,
         routing: currentUser.officialRouting || 'BDO / DM Jurisdiction',
         coords: 'Calculated via National GeoJSON (Pin: ' + (currentUser.pincode || '412207') + ')'
       };
@@ -126,7 +132,7 @@ function App() {
     }
     return {
       title: `${customLocation.landmark ? customLocation.landmark + ', ' : ''}${customLocation.district}, ${customLocation.state}`,
-      tag: 'Custom Incident Location',
+      tag: 'Custom Spot',
       routing: `District Magistrate (${customLocation.district}) & Zonal Engineer`,
       coords: 'Geo-coded from District Node'
     };
@@ -135,29 +141,34 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!text || text.trim().length < 5) {
+      setTextError(`${t.requiredErr} *`);
+      return;
+    }
+
     if (!isLocationConfirmed) {
-      alert('कृपया शिकायत का स्थान सत्यापित एवं पुष्ट करें (Please verify and confirm the incident location before submission)');
+      alert('कृपया शिकायत का स्थान सत्यापित एवं पुष्ट करें (Please verify and confirm the incident location)');
       return;
     }
 
     setIsSubmitting(true);
     const locInfo = getActiveLocationSummary();
 
-    // Simulate Step 2 (Google Gemini AI) & Step 3 (Firebase Data Fusion + 3D Map Dispatch)
+    // Simulate Step 2 (Google Gemini AI) & Step 3 (Firebase 3D Twin Sync)
     setTimeout(() => {
       setIsSubmitting(false);
       const isRural = currentUser?.areaType === 'rural' || locationSource === 'registered';
       setSubmissionResult({
         ticketId: 'JD-' + Math.floor(100000 + Math.random() * 900000),
-        translatedText: text.includes('water') || text.includes('पानी') || text.includes('पाणी')
+        translatedText: text.includes('water') || text.includes('पानी') || text.includes('पाणी') || text.includes('தண்ணீர்')
           ? "Critical public water pipeline rupture & severe water supply deficit reported in verified jurisdiction." 
           : "Essential public infrastructure defect requiring administrative dispatch.",
-        department: text.includes('water') || text.includes('पानी') || text.includes('पाणी') 
+        department: text.includes('water') || text.includes('पानी') || text.includes('पाणी') || text.includes('தண்ணீர்')
           ? "Ministry of Jal Shakti (जल शक्ति) / Water Supply Board" 
           : "Public Works Department (PWD / लोक निर्माण विभाग)",
         confirmedLocation: locInfo.title,
         routingUnit: locInfo.routing,
-        severityScore: isRural ? '8.9/10 (High Priority - Rural Multiplier Boost)' : '7.5/10 (Standard Severity)',
+        severityScore: isRural ? '8.9/10 (High Priority - Rural Boost)' : '7.5/10 (Standard Severity)',
         syncedTo3DMap: true
       });
     }, 1200);
@@ -176,14 +187,14 @@ function App() {
             className={`nav-btn ${activeTab === 'login' ? 'active' : ''}`}
             onClick={() => setActiveTab('login')}
           >
-            {currentUser ? '👤 Citizen Credential' : '🌐 Citizen Portal'}
+            {currentUser ? '👤 ' + (t.fullName || 'Citizen') : '🌐 ' + t.portalTitle}
           </button>
           <button 
             type="button"
             className={`nav-btn ${activeTab === 'grievance' ? 'active' : ''}`}
             onClick={() => setActiveTab('grievance')}
           >
-            ✍️ File Grievance (शिकायत)
+            ✍️ {t.fileGrievanceTitle}
           </button>
         </div>
 
@@ -194,9 +205,9 @@ function App() {
               type="button" 
               className="logout-link-btn" 
               onClick={handleLogout}
-              title="लॉग आउट करें"
+              title={t.logoutText}
             >
-              (Logout)
+              ({t.logoutText})
             </button>
           </div>
         ) : (
@@ -207,29 +218,31 @@ function App() {
       {/* Main Content Area */}
       {activeTab === 'login' ? (
         <Login 
+          activeLanguage={selectedLanguage}
+          onLanguageChange={(newLang) => setSelectedLanguage(newLang)}
           onLoginSuccess={handleLoginSuccess}
           onContinueAsGuest={() => setActiveTab('grievance')}
         />
       ) : (
         <div className="card">
           <div className="card-header">
-            <h1 className="title">JanDhwani (जनध्वनि)</h1>
-            <p className="subtitle">नागरिक शिकायत पोर्टल • Step 1: Citizen Grievance Gateway</p>
+            <h1 className="title">{t.portalTitle}</h1>
+            <p className="subtitle">{t.fileGrievanceTitle} • {t.fileGrievanceSub}</p>
           </div>
 
           {/* Citizen Attached Demographics Banner */}
           {currentUser && (
             <div className="attached-profile-banner">
               <div className="banner-title">
-                <span>🛡️ Verified Citizen Credential Auto-Attached to Ticket:</span>
+                <span>🛡️ {t.verifiedBadge}</span>
               </div>
               <div className="banner-grid">
-                <div><strong>Citizen:</strong> {currentUser.fullName}</div>
-                <div><strong>Mobile (UID):</strong> {currentUser.mobile}</div>
-                <div><strong>State & UT:</strong> {currentUser.state}</div>
-                <div><strong>District:</strong> {currentUser.district}</div>
-                <div><strong>Area Type:</strong> <span className="highlight-tag">{currentUser.areaType === 'rural' ? 'Rural (Gram Panchayat)' : 'Urban (Municipal Ward)'}</span></div>
-                <div><strong>Pincode:</strong> 📮 {currentUser.pincode}</div>
+                <div><strong>{t.fullName}:</strong> {currentUser.fullName}</div>
+                <div><strong>{t.mobile}:</strong> {currentUser.mobile}</div>
+                <div><strong>{t.state}:</strong> {currentUser.state}</div>
+                <div><strong>{t.district}:</strong> {currentUser.district}</div>
+                <div><strong>{t.areaType}:</strong> <span className="highlight-tag">{currentUser.areaType === 'rural' ? t.rural : t.urban}</span></div>
+                <div><strong>{t.pincode}:</strong> 📮 {currentUser.pincode}</div>
               </div>
             </div>
           )}
@@ -237,20 +250,20 @@ function App() {
           {submissionResult ? (
             <div className="success-screen">
               <div className="success-icon">🚀</div>
-              <h2>Grievance Dispatched to 3D Digital Twin!</h2>
-              <p className="ticket-number">Ticket ID: <strong>{submissionResult.ticketId}</strong></p>
+              <h2>{t.dispatchedTitle}</h2>
+              <p className="ticket-number">{t.ticketIdText} <strong>{submissionResult.ticketId}</strong></p>
               
               <div className="ai-summary-card">
-                <h3>🤖 Step 2: Google Gemini 1.5 Flash AI Processing</h3>
+                <h3>{t.aiTitle}</h3>
                 <p><strong>Department:</strong> {submissionResult.department}</p>
-                <p><strong>Confirmed Incident Location:</strong> {submissionResult.confirmedLocation}</p>
-                <p><strong>Official Routing Unit:</strong> {submissionResult.routingUnit}</p>
+                <p><strong>Location:</strong> {submissionResult.confirmedLocation}</p>
+                <p><strong>Routing Unit:</strong> {submissionResult.routingUnit}</p>
                 <p><strong>Auto-Translation (English):</strong> {submissionResult.translatedText}</p>
                 <p><strong>Urgency Score (1-10):</strong> <span className="score-badge">{submissionResult.severityScore}</span></p>
               </div>
 
               <div className="firebase-status">
-                <span>📡 Step 3: Synced to Firebase → Glowing 3D Beacon Rises on Minister's Map</span>
+                <span>{t.syncedBanner}</span>
               </div>
 
               <button 
@@ -262,14 +275,14 @@ function App() {
                   setFileName('');
                 }}
               >
-                + File Another Grievance
+                {t.fileAnotherBtn}
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="form">
+            <form onSubmit={handleSubmit} className="form" noValidate>
               {/* Language Selector */}
               <div className="form-group">
-                <label>शिकायत इनपुट भाषा (Voice & Speech Recognition Language)</label>
+                <label>{t.prefLang} <span className="req">*</span></label>
                 <select 
                   className="input-field select-field"
                   value={selectedLanguage}
@@ -277,7 +290,7 @@ function App() {
                 >
                   {ALL_LANGUAGES.map((lang) => (
                     <option key={lang.code} value={lang.code}>
-                      {lang.native} ({lang.name}) - {lang.region}
+                      {lang.native} ({lang.name})
                     </option>
                   ))}
                 </select>
@@ -285,41 +298,45 @@ function App() {
 
               {/* Grievance Text Area with HTML5 Speech-to-Text */}
               <div className="form-group">
-                <label>आपकी शिकायत / मांग (Voice or Text Grievance) <span className="req">*</span></label>
+                <label>{t.yourGrievance} <span className="req">*</span></label>
                 <div className="textarea-container">
                   <textarea 
                     rows="5" 
-                    placeholder="अपनी समस्या यहाँ लिखें या माइक बटन दबाकर बोलें... (उदा. 'आमच्या गावात पिण्याच्या पाण्याची मुख्य लाईन फुटली आहे')"
+                    placeholder={t.grievancePlaceholder}
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => {
+                      setText(e.target.value);
+                      if (textError) setTextError(null);
+                    }}
                     required
                   />
                   <button 
                     type="button" 
                     className={`mic-button ${isRecording ? 'recording' : ''}`}
                     onClick={startRecording}
-                    title="बोलकर टाइप करें (Voice Input)"
+                    title={t.recordVoice}
                   >
-                    {isRecording ? '🎙️ सुन रहा है...' : '🎙️ Record Voice'}
+                    {isRecording ? t.listening : t.recordVoice}
                   </button>
                 </div>
+                {textError && (
+                  <span className="error-text">⚠️ {textError}</span>
+                )}
               </div>
 
               {/* Evidence Upload */}
               <div className="action-buttons">
                 <label className="action-btn file-upload">
-                  📸 {fileName ? fileName.substring(0, 18) + '...' : 'Upload Photo / Video Evidence'}
+                  📸 {fileName ? fileName.substring(0, 18) + '...' : t.uploadEvidence}
                   <input type="file" accept="image/*" onChange={handleFileChange} style={{display: 'none'}} />
                 </label>
               </div>
 
-              {/* =========================================================================
-                 LOCATION CONFIRMATION SECTION (MANDATORY VERIFICATION BEFORE DISPATCH)
-                 ========================================================================= */}
+              {/* Location Confirmation Section */}
               <div className="location-confirm-section">
                 <div className="loc-section-header">
-                  <span className="loc-title">📍 घटना स्थल चयन एवं पुष्टि (Incident Location Confirmation)</span>
-                  <span className="loc-sub">Ensure the 3D beacon accurately rises at the problem site</span>
+                  <span className="loc-title">📍 {t.locConfirmTitle}</span>
+                  <span className="loc-sub">{t.locConfirmSub}</span>
                 </div>
 
                 {/* Location Source Selector Tabs */}
@@ -329,30 +346,30 @@ function App() {
                     className={`loc-tab ${locationSource === 'registered' ? 'active' : ''}`}
                     onClick={() => { setLocationSource('registered'); setIsLocationConfirmed(true); }}
                   >
-                    🏠 पंजीकृत पता (Profile Address)
+                    {t.profileAddressTab}
                   </button>
                   <button
                     type="button"
                     className={`loc-tab ${locationSource === 'gps' ? 'active' : ''}`}
                     onClick={fetchLiveGps}
                   >
-                    📍 लाइव GPS (Current Device Location)
+                    {t.liveGpsTab}
                   </button>
                   <button
                     type="button"
                     className={`loc-tab ${locationSource === 'custom' ? 'active' : ''}`}
                     onClick={() => { setLocationSource('custom'); setIsLocationConfirmed(true); }}
                   >
-                    📝 अन्य स्थल (Different Spot)
+                    {t.customSpotTab}
                   </button>
                 </div>
 
-                {/* Custom Location Fields (if chosen) */}
+                {/* Custom Location Fields */}
                 {locationSource === 'custom' && (
                   <div className="custom-loc-fields">
                     <div className="form-row">
                       <div className="form-group">
-                        <label>राज्य (State) *</label>
+                        <label>{t.state} <span className="req">*</span></label>
                         <select
                           className="input-field select-field"
                           value={customLocation.state}
@@ -372,7 +389,7 @@ function App() {
                         </select>
                       </div>
                       <div className="form-group">
-                        <label>जिला (District) *</label>
+                        <label>{t.district} <span className="req">*</span></label>
                         <select
                           className="input-field select-field"
                           value={customLocation.district}
@@ -385,11 +402,11 @@ function App() {
                       </div>
                     </div>
                     <div className="form-group">
-                      <label>घटना स्थल का विवरण / लैंडमार्क (Landmark / Street / Area)</label>
+                      <label>लैंडमार्क / स्थल (Landmark / Street)</label>
                       <input
                         type="text"
                         className="input-field"
-                        placeholder="उदा. Main Market Road, Near Primary Health Centre"
+                        placeholder="e.g. Near Primary Health Centre"
                         value={customLocation.landmark}
                         onChange={(e) => setCustomLocation({ ...customLocation, landmark: e.target.value })}
                       />
@@ -402,7 +419,7 @@ function App() {
                   <div className="conf-row">
                     <span className="conf-icon">📌</span>
                     <div className="conf-detail">
-                      <strong>सत्यापित घटना स्थल (Confirmed Spot):</strong>
+                      <strong>{t.confirmedSpotLabel}</strong>
                       <p>{activeLoc.title}</p>
                     </div>
                   </div>
@@ -419,15 +436,13 @@ function App() {
                       checked={isLocationConfirmed}
                       onChange={(e) => setIsLocationConfirmed(e.target.checked)}
                     />
-                    <span>
-                      मैं पुष्टि करता/करती हूँ कि यह घटना का सही स्थान है (I confirm this is the exact problem location for 3D map plotting & official inspection)
-                    </span>
+                    <span>{t.confirmCheckboxText}</span>
                   </label>
                 </div>
               </div>
 
               <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Google AI द्वारा विश्लेषण हो रहा है...' : '3D डिजिटल ट्विन पर प्रेषित करें (Submit Grievance) ➔'}
+                {isSubmitting ? 'Google AI Processing...' : t.submitGrievanceBtn}
               </button>
             </form>
           )}

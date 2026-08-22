@@ -10,10 +10,10 @@ import { VALIDATION_RULES } from '../validators';
 import { UI_STRINGS } from '../translations';
 import './Login.css';
 
-function Login({ onLoginSuccess, onContinueAsGuest }) {
+function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageChange }) {
   // Step 0: Language Gate state
   const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
-  const [currentLang, setCurrentLang] = useState('hi-IN');
+  const [currentLang, setCurrentLang] = useState(activeLanguage || 'hi-IN');
   const [languageSearch, setLanguageSearch] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('all');
 
@@ -22,7 +22,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
   const [loginMethod, setLoginMethod] = useState('otp'); // 'otp' | 'password'
 
   // Location method (Flipkart/Swiggy style: 'gps_permission' vs 'manual')
-  const [locationMode, setLocationMode] = useState('manual'); // 'gps_permission' | 'manual'
+  const [locationMode, setLocationMode] = useState('manual');
   const [gpsStatus, setGpsStatus] = useState(null);
 
   // Login form state
@@ -38,11 +38,11 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     email: '',
     state: 'Maharashtra',
     district: 'Pune',
-    areaType: 'rural', // 'rural' or 'urban'
+    areaType: 'rural',
     tehsil: '',
     panchayatOrWard: '',
     pincode: '',
-    preferredLanguage: 'hi-IN',
+    preferredLanguage: activeLanguage || 'hi-IN',
     password: '',
     confirmPassword: ''
   });
@@ -53,7 +53,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
   const [alertInfo, setAlertInfo] = useState(null);
   const [pincodeDetectedInfo, setPincodeDetectedInfo] = useState(null);
 
-  // Helper for UI text based on chosen language
+  // Helper for UI text based on chosen language (with fallback to Hindi/English)
   const t = UI_STRINGS[currentLang] || UI_STRINGS['hi-IN'] || UI_STRINGS['en-IN'];
 
   // Filter languages based on search and region
@@ -82,22 +82,31 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     setCurrentLang(langCode);
     setRegData(prev => ({ ...prev, preferredLanguage: langCode }));
     setHasSelectedLanguage(true);
+    if (onLanguageChange) {
+      onLanguageChange(langCode);
+    }
   };
 
   // Field validation trigger
   const validateField = (field, value, extra) => {
     let error = null;
-    if (field === 'fullName') error = VALIDATION_RULES.fullName(value);
-    if (field === 'mobile') error = VALIDATION_RULES.mobile(value);
-    if (field === 'pincode') error = VALIDATION_RULES.pincode(value);
-    if (field === 'email') error = VALIDATION_RULES.email(value);
-    if (field === 'password') error = VALIDATION_RULES.password(value);
-    if (field === 'confirmPassword') {
-      if (value !== regData.password) error = 'पासवर्ड मेल नहीं खाते (Passwords do not match)';
+    if (!value || value.trim() === '') {
+      if (field !== 'email') {
+        error = `${t.requiredErr} *`;
+      }
+    } else {
+      if (field === 'fullName') error = VALIDATION_RULES.fullName(value) ? `${t.requiredErr} (Min. 3 letters)` : null;
+      if (field === 'mobile') error = VALIDATION_RULES.mobile(value) ? `${t.requiredErr} (10 digits, 6-9)` : null;
+      if (field === 'pincode') error = VALIDATION_RULES.pincode(value) ? `${t.requiredErr} (6 digits, 1-8)` : null;
+      if (field === 'email') error = VALIDATION_RULES.email(value);
+      if (field === 'password') error = VALIDATION_RULES.password(value) ? `${t.requiredErr} (Min. 6 chars)` : null;
+      if (field === 'confirmPassword') {
+        if (value !== regData.password) error = 'Passwords do not match / पासवर्ड मेल नहीं खाते';
+      }
+      if (field === 'district') error = VALIDATION_RULES.district(value) ? `${t.requiredErr} *` : null;
+      if (field === 'tehsil') error = VALIDATION_RULES.subArea(value, extra || regData.areaType) ? `${t.requiredErr} *` : null;
+      if (field === 'panchayatOrWard') error = VALIDATION_RULES.subArea(value, extra || regData.areaType) ? `${t.requiredErr} *` : null;
     }
-    if (field === 'district') error = VALIDATION_RULES.district(value);
-    if (field === 'tehsil') error = VALIDATION_RULES.subArea(value, extra || regData.areaType);
-    if (field === 'panchayatOrWard') error = VALIDATION_RULES.subArea(value, extra || regData.areaType);
 
     setErrors(prev => ({ ...prev, [field]: error }));
     return error;
@@ -108,25 +117,25 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     validateField(field, regData[field]);
   };
 
-  // Sanitized Name Change (Letters and Spaces only)
+  // Sanitized Name Change
   const handleNameChange = (val) => {
     const sanitized = val.replace(/[^a-zA-Z\u0900-\u0DFF\s.]/g, '');
     setRegData(prev => ({ ...prev, fullName: sanitized }));
-    validateField('fullName', sanitized);
+    if (touched.fullName) validateField('fullName', sanitized);
   };
 
-  // Sanitized Mobile Change (Exactly Numbers, max 10)
+  // Sanitized Mobile Change
   const handleMobileChange = (val) => {
     const sanitized = val.replace(/\D/g, '').slice(0, 10);
     setRegData(prev => ({ ...prev, mobile: sanitized }));
-    validateField('mobile', sanitized);
+    if (touched.mobile) validateField('mobile', sanitized);
   };
 
-  // Smart Pincode Auto-Fill & Validation (6 Digits)
+  // Smart Pincode Auto-Fill & Validation
   const handlePincodeChange = (val) => {
     const clean = val.replace(/\D/g, '').slice(0, 6);
     setRegData(prev => ({ ...prev, pincode: clean }));
-    validateField('pincode', clean);
+    if (touched.pincode) validateField('pincode', clean);
 
     if (clean.length >= 2) {
       const prefix = clean.substring(0, 2);
@@ -232,14 +241,14 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     setErrors({});
     setAlertInfo({ 
       type: 'success', 
-      text: '🇮🇳 DigiLocker Verified: All credentials auto-filled!' 
+      text: '🇮🇳 DigiLocker: All credentials auto-filled!' 
     });
   };
 
   const handleSendOtp = () => {
     const mobErr = VALIDATION_RULES.mobile(loginIdentifier);
     if (mobErr) {
-      setAlertInfo({ type: 'error', text: `⚠️ ${mobErr}` });
+      setAlertInfo({ type: 'error', text: `⚠️ ${t.requiredErr} (10 digits)` });
       return;
     }
     setOtpSent(true);
@@ -253,12 +262,12 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     e.preventDefault();
     if (loginMethod === 'password') {
       if (!loginIdentifier || !loginPassword) {
-        setAlertInfo({ type: 'error', text: 'Please fill all required login credentials.' });
+        setAlertInfo({ type: 'error', text: `${t.requiredErr} *` });
         return;
       }
     } else {
       if (!loginIdentifier || !loginOtp) {
-        setAlertInfo({ type: 'error', text: 'Please enter valid Mobile and 6-digit OTP.' });
+        setAlertInfo({ type: 'error', text: `${t.requiredErr} *` });
         return;
       }
     }
@@ -288,18 +297,20 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     e.preventDefault();
 
     // Validate ALL fields on submit
-    const nameErr = VALIDATION_RULES.fullName(regData.fullName);
-    const mobErr = VALIDATION_RULES.mobile(regData.mobile);
-    const pinErr = VALIDATION_RULES.pincode(regData.pincode);
-    const passErr = VALIDATION_RULES.password(regData.password);
-    const distErr = VALIDATION_RULES.district(regData.district);
-    const tehsilErr = VALIDATION_RULES.subArea(regData.tehsil, regData.areaType);
-    const wardErr = VALIDATION_RULES.subArea(regData.panchayatOrWard, regData.areaType);
+    const nameErr = !regData.fullName ? `${t.requiredErr} *` : (VALIDATION_RULES.fullName(regData.fullName) ? `${t.requiredErr} (Min. 3 letters)` : null);
+    const mobErr = !regData.mobile ? `${t.requiredErr} *` : (VALIDATION_RULES.mobile(regData.mobile) ? `${t.requiredErr} (10 digits)` : null);
+    const pinErr = !regData.pincode ? `${t.requiredErr} *` : (VALIDATION_RULES.pincode(regData.pincode) ? `${t.requiredErr} (6 digits)` : null);
+    const passErr = !regData.password ? `${t.requiredErr} *` : (VALIDATION_RULES.password(regData.password) ? `${t.requiredErr} (Min. 6 chars)` : null);
+    const distErr = !regData.district ? `${t.requiredErr} *` : null;
+    const tehsilErr = !regData.tehsil ? `${t.requiredErr} *` : null;
+    const wardErr = !regData.panchayatOrWard ? `${t.requiredErr} *` : null;
     const emailErr = VALIDATION_RULES.email(regData.email);
     
     let confirmPassErr = null;
-    if (regData.password !== regData.confirmPassword) {
-      confirmPassErr = 'पासवर्ड मेल नहीं खाते (Passwords do not match)';
+    if (!regData.confirmPassword) {
+      confirmPassErr = `${t.requiredErr} *`;
+    } else if (regData.password !== regData.confirmPassword) {
+      confirmPassErr = 'Passwords do not match';
     }
 
     const allErrors = {
@@ -331,7 +342,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     if (hasAnyError) {
       setAlertInfo({ 
         type: 'error', 
-        text: '⚠️ कृपया त्रुटियों को ठीक करें (Please fix the highlighted errors)' 
+        text: `⚠️ ${t.requiredErr}: कृपया लाल स्टार वाले सभी आवश्यक फ़ील्ड भरें` 
       });
       return;
     }
@@ -355,16 +366,16 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
       isLoggedIn: true
     };
 
-    setAlertInfo({ type: 'success', text: '🎉 खाता सफलतापूर्वक बनाया गया! (Account Created).' });
+    setAlertInfo({ type: 'success', text: '🎉 Account Created!' });
     setTimeout(() => {
       onLoginSuccess(citizen);
     }, 500);
   };
 
   const handleDemoSelect = (demoCitizen) => {
-    setAlertInfo({ type: 'success', text: `✨ Demo Profile: ${demoCitizen.fullName}` });
+    setAlertInfo({ type: 'success', text: `✨ Profile: ${demoCitizen.fullName}` });
     setTimeout(() => {
-      onLoginSuccess({ ...demoCitizen, isLoggedIn: true });
+      onLoginSuccess({ ...demoCitizen, language: currentLang, isLoggedIn: true });
     }, 350);
   };
 
@@ -451,7 +462,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
   }
 
   /* =========================================================================
-     SCREEN 2: SIGN UP / LOGIN (CLEAN FORM WITHOUT PIN ANNOTATIONS)
+     SCREEN 2: SIGN UP / LOGIN (IN CHOSEN LANGUAGE ONLY)
      ========================================================================= */
   const currentDistricts = STATES_AND_DISTRICTS[regData.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
@@ -467,7 +478,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             onClick={() => setHasSelectedLanguage(false)}
             title="Switch Language"
           >
-            🌐 {ALL_LANGUAGES.find(l => l.code === currentLang)?.native || 'भाषा'} ({t.changeLang || 'Change Language'})
+            🌐 {ALL_LANGUAGES.find(l => l.code === currentLang)?.native || 'भाषा'} ({t.changeLang})
           </button>
         </div>
 
@@ -522,13 +533,13 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
       {authMode === 'register' ? (
         /* =========================================================================
-           REGISTRATION FORM (Clean, Minimal, Strictly Validated)
+           REGISTRATION FORM (Rendered In Chosen Language Only)
            ========================================================================= */
         <form onSubmit={handleRegisterSubmit} className="auth-form registration-form" noValidate>
           {/* 1-Click DigiLocker Fast-Fill Helper */}
           <div className="digilocker-helper-banner">
             <div className="digi-text">
-              <strong>🇮🇳 Easy Sign Up:</strong> Auto-fill via DigiLocker / Aadhaar
+              <strong>🇮🇳 Easy Sign Up:</strong> DigiLocker Auto-Fill
             </div>
             <button 
               type="button" 
@@ -567,7 +578,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
           <div className="form-row">
             {/* Mobile Number Input */}
             <div className="form-group">
-              <label>{t.mobile} (10 Digits) <span className="req">*</span></label>
+              <label>{t.mobile} <span className="req">*</span></label>
               <div className="input-wrapper">
                 <span className="input-icon">📱</span>
                 <input 
@@ -617,7 +628,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
           {/* Swiggy / Flipkart Style Location Mode Switcher */}
           <div className="location-permission-card">
             <div className="loc-permission-header">
-              <strong>📍 स्थान चयन (Set Location):</strong>
+              <strong>📍 स्थान चयन:</strong>
             </div>
             
             <div className="loc-permission-actions">
@@ -626,7 +637,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                 className={`loc-perm-btn ${locationMode === 'gps_permission' ? 'active-perm' : ''}`}
                 onClick={requestLocationPermission}
               >
-                📡 शेयर लोकेशन (Share Live GPS)
+                📡 शेयर लोकेशन (Share GPS)
               </button>
               
               <button
@@ -648,7 +659,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
           {/* Pincode & Language */}
           <div className="form-row">
             <div className="form-group">
-              <label>{t.pincode} (6 Digits) <span className="req">*</span></label>
+              <label>{t.pincode} <span className="req">*</span></label>
               <div className="input-wrapper">
                 <span className="input-icon">📮</span>
                 <input 
@@ -675,6 +686,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                 onChange={(e) => {
                   setRegData({ ...regData, preferredLanguage: e.target.value });
                   setCurrentLang(e.target.value);
+                  if (onLanguageChange) onLanguageChange(e.target.value);
                 }}
               >
                 {ALL_LANGUAGES.map((lang) => (
@@ -719,7 +731,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             </div>
 
             <div className="form-group">
-              <label>{t.district} (City / District) <span className="req">*</span></label>
+              <label>{t.district} <span className="req">*</span></label>
               <select
                 className={`input-field select-field ${touched.district && errors.district ? 'input-error' : ''}`}
                 value={regData.district}
@@ -740,7 +752,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             </div>
           </div>
 
-          {/* Area Type Toggle: Rural vs Urban */}
+          {/* Area Type Toggle */}
           <div className="form-group">
             <label>{t.areaType} <span className="req">*</span></label>
             <div className="area-type-toggle">
@@ -788,7 +800,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   <input 
                     type="text"
                     className={`input-field ${touched.panchayatOrWard && errors.panchayatOrWard ? 'input-error' : ''}`}
-                    placeholder="उदा. Wagholi / Srinagar Panchayat"
+                    placeholder="उदा. Wagholi / Srinagar"
                     value={regData.panchayatOrWard}
                     onChange={(e) => {
                       setRegData({ ...regData, panchayatOrWard: e.target.value });
@@ -805,11 +817,11 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             ) : (
               <>
                 <div className="form-group">
-                  <label>नगर निगम / जोन (Municipal Corporation / Zone) <span className="req">*</span></label>
+                  <label>नगर निगम / जोन <span className="req">*</span></label>
                   <input 
                     type="text"
                     className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
-                    placeholder="उदा. Pune PMC / GCC Chennai"
+                    placeholder="उदा. PMC / GCC / KMC"
                     value={regData.tehsil}
                     onChange={(e) => {
                       setRegData({ ...regData, tehsil: e.target.value });
@@ -851,11 +863,11 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label>{t.createPass} (Min. 6 Chars) <span className="req">*</span></label>
+              <label>{t.createPass} <span className="req">*</span></label>
               <input 
                 type="password"
                 className={`input-field ${touched.password && errors.password ? 'input-error' : ''}`}
-                placeholder="Create Password"
+                placeholder="Password (Min. 6)"
                 value={regData.password}
                 onChange={(e) => {
                   setRegData({ ...regData, password: e.target.value });
@@ -874,7 +886,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
               <input 
                 type="password"
                 className={`input-field ${touched.confirmPassword && errors.confirmPassword ? 'input-error' : ''}`}
-                placeholder="Confirm Password"
+                placeholder="Confirm"
                 value={regData.confirmPassword}
                 onChange={(e) => {
                   setRegData({ ...regData, confirmPassword: e.target.value });
@@ -895,7 +907,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
         </form>
       ) : (
         /* =========================================================================
-           LOGIN FORM
+           LOGIN FORM (Rendered In Chosen Language Only)
            ========================================================================= */
         <form onSubmit={handleLoginSubmit} className="auth-form" noValidate>
           <div className="method-selector">
@@ -904,25 +916,25 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
               className={`method-btn ${loginMethod === 'otp' ? 'selected' : ''}`}
               onClick={() => setLoginMethod('otp')}
             >
-              📲 OTP Login (ओटीपी)
+              📲 OTP Login
             </button>
             <button
               type="button"
               className={`method-btn ${loginMethod === 'password' ? 'selected' : ''}`}
               onClick={() => setLoginMethod('password')}
             >
-              🔒 Password (पासवर्ड)
+              🔒 Password
             </button>
           </div>
 
           <div className="form-group">
-            <label>मोबाइल नंबर / ईमेल (10-Digit Mobile / Email) <span className="req">*</span></label>
+            <label>{t.mobile} <span className="req">*</span></label>
             <div className="input-wrapper">
               <span className="input-icon">🆔</span>
               <input 
                 type="text"
                 className="input-field"
-                placeholder="उदा. 9822012345"
+                placeholder="e.g. 9822012345"
                 value={loginIdentifier}
                 onChange={(e) => setLoginIdentifier(e.target.value)}
                 required
@@ -932,14 +944,14 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
           {loginMethod === 'otp' ? (
             <div className="form-group">
-              <label>ओटीपी (One-Time Password) <span className="req">*</span></label>
+              <label>OTP <span className="req">*</span></label>
               <div className="otp-row">
                 <div className="input-wrapper" style={{ flex: 1 }}>
                   <span className="input-icon">💬</span>
                   <input 
                     type="text"
                     className="input-field"
-                    placeholder="6-अंकों का OTP (e.g. 942108)"
+                    placeholder="6-digit OTP"
                     value={loginOtp}
                     onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     maxLength="6"
@@ -951,19 +963,19 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   className="otp-btn" 
                   onClick={handleSendOtp}
                 >
-                  {otpSent ? 'पुनः भेजें (Resend)' : 'OTP प्राप्त करें (Send OTP)'}
+                  {otpSent ? 'Resend' : 'Send OTP'}
                 </button>
               </div>
             </div>
           ) : (
             <div className="form-group">
-              <label>पासवर्ड (Password) <span className="req">*</span></label>
+              <label>{t.createPass} <span className="req">*</span></label>
               <div className="input-wrapper">
                 <span className="input-icon">🔒</span>
                 <input 
                   type="password"
                   className="input-field"
-                  placeholder="अपना पासवर्ड दर्ज करें"
+                  placeholder="Password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
@@ -979,14 +991,14 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
           {onContinueAsGuest && (
             <>
               <div className="guest-divider">
-                <span>अथवा (OR)</span>
+                <span>OR</span>
               </div>
               <button 
                 type="button" 
                 className="guest-btn"
                 onClick={onContinueAsGuest}
               >
-                बिना लॉगिन सीधे शिकायत करें (Proceed as Guest) ➔
+                Proceed as Guest ➔
               </button>
             </>
           )}
