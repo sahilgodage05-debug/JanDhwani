@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import Login from './components/Login';
-import { SUPPORTED_LANGUAGES } from './translations';
+import { ALL_LANGUAGES } from './indiaData';
 import './App.css';
 
 function App() {
@@ -220,7 +220,7 @@ function App() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="form">
-              {/* Language Selector */}
+              {/* Language Selector for Speech Input */}
               <div className="form-group">
                 <label>शिकायत इनपुट भाषा (Voice & Speech Recognition Language)</label>
                 <select 
@@ -228,9 +228,9 @@ function App() {
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
                 >
-                  {SUPPORTED_LANGUAGES.map((lang) => (
+                  {ALL_LANGUAGES.map((lang) => (
                     <option key={lang.code} value={lang.code}>
-                      {lang.native} ({lang.name})
+                      {lang.native} ({lang.name}) - {lang.region}
                     </option>
                   ))}
                 </select>
