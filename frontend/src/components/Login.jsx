@@ -6,6 +6,7 @@ import {
   PINCODE_MAP, 
   EXPANDED_DEMO_CITIZENS 
 } from '../indiaData';
+import { VALIDATION_RULES } from '../validators';
 import { UI_STRINGS } from '../translations';
 import './Login.css';
 
@@ -18,8 +19,11 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
   // Auth view mode ('register' by default after language selection or 'login')
   const [authMode, setAuthMode] = useState('register');
-  const [regStep, setRegStep] = useState(1); // 1: Contact, 2: Jurisdiction, 3: Security
   const [loginMethod, setLoginMethod] = useState('otp'); // 'otp' | 'password'
+
+  // Location method (Flipkart/Swiggy style: 'gps_permission' vs 'manual')
+  const [locationMode, setLocationMode] = useState('manual'); // 'gps_permission' | 'manual'
+  const [gpsStatus, setGpsStatus] = useState(null); // { granted: boolean, coords: {lat, lng}, message: string }
 
   // Login form state
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -27,7 +31,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
   const [loginOtp, setLoginOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
 
-  // Government Registration state (with all critical governance & routing fields)
+  // Government Registration state (Strictly Validated)
   const [regData, setRegData] = useState({
     fullName: '',
     mobile: '',
@@ -43,6 +47,9 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     confirmPassword: ''
   });
 
+  // Validation Error States (Real-Time Feedback)
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [alertInfo, setAlertInfo] = useState(null);
   const [pincodeDetectedInfo, setPincodeDetectedInfo] = useState(null);
 
@@ -77,21 +84,67 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     setHasSelectedLanguage(true);
   };
 
-  // Smart Pincode Auto-Fill Function
-  const handlePincodeChange = (pin) => {
-    setRegData(prev => ({ ...prev, pincode: pin }));
-    if (pin.length >= 2) {
-      const prefix = pin.substring(0, 2);
+  // Field validation trigger
+  const validateField = (field, value, extra) => {
+    let error = null;
+    if (field === 'fullName') error = VALIDATION_RULES.fullName(value);
+    if (field === 'mobile') error = VALIDATION_RULES.mobile(value);
+    if (field === 'pincode') error = VALIDATION_RULES.pincode(value);
+    if (field === 'email') error = VALIDATION_RULES.email(value);
+    if (field === 'password') error = VALIDATION_RULES.password(value);
+    if (field === 'confirmPassword') {
+      if (value !== regData.password) error = 'पासवर्ड मेल नहीं खाते (Passwords do not match)';
+    }
+    if (field === 'district') error = VALIDATION_RULES.district(value);
+    if (field === 'tehsil') error = VALIDATION_RULES.subArea(value, extra || regData.areaType);
+    if (field === 'panchayatOrWard') error = VALIDATION_RULES.subArea(value, extra || regData.areaType);
+
+    setErrors(prev => ({ ...prev, [field]: error }));
+    return error;
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validateField(field, regData[field]);
+  };
+
+  // Sanitized Name Change (Letters and Spaces only)
+  const handleNameChange = (val) => {
+    const sanitized = val.replace(/[^a-zA-Z\u0900-\u0DFF\s.]/g, '');
+    setRegData(prev => ({ ...prev, fullName: sanitized }));
+    validateField('fullName', sanitized);
+  };
+
+  // Sanitized Mobile Change (Exactly Numbers, max 10)
+  const handleMobileChange = (val) => {
+    const sanitized = val.replace(/\D/g, '').slice(0, 10);
+    setRegData(prev => ({ ...prev, mobile: sanitized }));
+    validateField('mobile', sanitized);
+  };
+
+  // Smart Pincode Auto-Fill & Validation (6 Digits)
+  const handlePincodeChange = (val) => {
+    const clean = val.replace(/\D/g, '').slice(0, 6);
+    setRegData(prev => ({ ...prev, pincode: clean }));
+    validateField('pincode', clean);
+
+    if (clean.length >= 2) {
+      const prefix = clean.substring(0, 2);
       const match = PINCODE_MAP[prefix];
       if (match) {
+        const availableDistList = STATES_AND_DISTRICTS[match.state] || [match.district];
+        const assignedDistrict = availableDistList.includes(match.district) 
+          ? match.district 
+          : (availableDistList[0] || match.district);
+
         setRegData(prev => ({
           ...prev,
-          pincode: pin,
+          pincode: clean,
           state: match.state,
-          district: match.district,
+          district: assignedDistrict,
           areaType: match.areaType
         }));
-        setPincodeDetectedInfo(`⚡ Auto-Detected: ${match.district}, ${match.state} (${match.areaType === 'rural' ? 'Rural' : 'Urban'})`);
+        setPincodeDetectedInfo(`⚡ Auto-Detected: ${assignedDistrict}, ${match.state} (${match.areaType === 'rural' ? 'Rural' : 'Urban'})`);
       } else {
         setPincodeDetectedInfo(null);
       }
@@ -100,7 +153,68 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
     }
   };
 
-  // Fast Auto-Fill with DigiLocker / Aadhaar Sandbox
+  // Flipkart / Swiggy Style Location Permission Handler
+  const requestLocationPermission = () => {
+    if (!navigator.geolocation) {
+      setGpsStatus({
+        granted: false,
+        message: 'ब्राउज़र में लोकेशन सर्विस उपलब्ध नहीं है (Geolocation is not supported by your browser)'
+      });
+      return;
+    }
+
+    setGpsStatus({ granted: null, message: 'लोकेशन अनुमति मांगी जा रही है (Requesting GPS permission)...' });
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        
+        // Match latitude/longitude to state zone approximation
+        let detectedState = 'Maharashtra';
+        let detectedDistrict = 'Pune';
+        let detectedPin = '411001';
+
+        if (lat > 28.0) {
+          detectedState = 'Delhi (NCT)';
+          detectedDistrict = 'New Delhi';
+          detectedPin = '110001';
+        } else if (lat > 25.0) {
+          detectedState = 'Bihar';
+          detectedDistrict = 'Patna';
+          detectedPin = '800001';
+        } else if (lat < 14.0) {
+          detectedState = 'Tamil Nadu';
+          detectedDistrict = 'Chennai';
+          detectedPin = '600001';
+        }
+
+        setRegData(prev => ({
+          ...prev,
+          state: detectedState,
+          district: detectedDistrict,
+          pincode: detectedPin
+        }));
+
+        setGpsStatus({
+          granted: true,
+          coords: { lat, lng },
+          message: `📍 लोकेशन अनुमति स्वीकृत (Permission Granted)! Auto-filled ${detectedDistrict}, ${detectedState} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`
+        });
+        setLocationMode('gps_permission');
+      },
+      (err) => {
+        setGpsStatus({
+          granted: false,
+          message: '❌ लोकेशन अनुमति अस्वीकृत (Location Permission Denied). कृपया नीचे मैन्युअल रूप से अपना राज्य व जिला चुनें।'
+        });
+        setLocationMode('manual');
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  // 1-Click Fast Auto-Fill with DigiLocker / Aadhaar Sandbox
   const handleDigiLockerFastFill = () => {
     setRegData({
       fullName: 'सुनील देशमुख (Sunil Deshmukh)',
@@ -116,34 +230,17 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
       password: 'Password@123',
       confirmPassword: 'Password@123'
     });
+    setErrors({});
     setAlertInfo({ 
       type: 'success', 
-      text: '🇮🇳 DigiLocker / Aadhaar Verified: Demographics & Identity auto-filled instantly!' 
-    });
-  };
-
-  // GPS Auto-Detect for Jurisdiction
-  const handleGpsJurisdiction = () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition((pos) => {
-      setAlertInfo({
-        type: 'info',
-        text: `📍 GPS Coordinates Locked (${pos.coords.latitude.toFixed(4)}° N, ${pos.coords.longitude.toFixed(4)}° E) - Auto-assigned to local district node.`
-      });
-    }, () => {
-      alert('Unable to fetch GPS. You can select State and District from the dropdowns.');
+      text: '🇮🇳 DigiLocker / Aadhaar Verified: All credentials & demographics auto-filled with valid data!' 
     });
   };
 
   const handleSendOtp = () => {
-    if (!loginIdentifier || loginIdentifier.trim().length < 4) {
-      setAlertInfo({ 
-        type: 'error', 
-        text: 'कृपया वैध मोबाइल नंबर दर्ज करें (Please enter valid Mobile Number)' 
-      });
+    const mobErr = VALIDATION_RULES.mobile(loginIdentifier);
+    if (mobErr) {
+      setAlertInfo({ type: 'error', text: `⚠️ ${mobErr}` });
       return;
     }
     setOtpSent(true);
@@ -155,13 +252,16 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    if (loginMethod === 'password' && (!loginIdentifier || !loginPassword)) {
-      setAlertInfo({ type: 'error', text: 'Please fill all required login credentials.' });
-      return;
-    }
-    if (loginMethod === 'otp' && (!loginIdentifier || !loginOtp)) {
-      setAlertInfo({ type: 'error', text: 'Please enter Mobile and OTP.' });
-      return;
+    if (loginMethod === 'password') {
+      if (!loginIdentifier || !loginPassword) {
+        setAlertInfo({ type: 'error', text: 'Please fill all required login credentials.' });
+        return;
+      }
+    } else {
+      if (!loginIdentifier || !loginOtp) {
+        setAlertInfo({ type: 'error', text: 'Please enter valid Mobile and 6-digit OTP.' });
+        return;
+      }
     }
 
     const citizen = {
@@ -187,19 +287,59 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
-    if (regData.password && regData.password !== regData.confirmPassword) {
-      setAlertInfo({ type: 'error', text: 'Passwords do not match / पासवर्ड मेल नहीं खाते' });
-      return;
+
+    // Validate ALL fields on submit
+    const nameErr = VALIDATION_RULES.fullName(regData.fullName);
+    const mobErr = VALIDATION_RULES.mobile(regData.mobile);
+    const pinErr = VALIDATION_RULES.pincode(regData.pincode);
+    const passErr = VALIDATION_RULES.password(regData.password);
+    const distErr = VALIDATION_RULES.district(regData.district);
+    const tehsilErr = VALIDATION_RULES.subArea(regData.tehsil, regData.areaType);
+    const wardErr = VALIDATION_RULES.subArea(regData.panchayatOrWard, regData.areaType);
+    const emailErr = VALIDATION_RULES.email(regData.email);
+    
+    let confirmPassErr = null;
+    if (regData.password !== regData.confirmPassword) {
+      confirmPassErr = 'पासवर्ड मेल नहीं खाते (Passwords do not match)';
     }
 
-    if (!regData.fullName || !regData.mobile || !regData.state || !regData.district || !regData.pincode) {
-      setAlertInfo({ type: 'error', text: 'Please complete all required administrative and contact fields.' });
+    const allErrors = {
+      fullName: nameErr,
+      mobile: mobErr,
+      pincode: pinErr,
+      password: passErr,
+      confirmPassword: confirmPassErr,
+      district: distErr,
+      tehsil: tehsilErr,
+      panchayatOrWard: wardErr,
+      email: emailErr
+    };
+
+    setErrors(allErrors);
+    setTouched({
+      fullName: true,
+      mobile: true,
+      pincode: true,
+      password: true,
+      confirmPassword: true,
+      district: true,
+      tehsil: true,
+      panchayatOrWard: true,
+      email: true
+    });
+
+    const hasAnyError = Object.values(allErrors).some(err => err !== null);
+    if (hasAnyError) {
+      setAlertInfo({ 
+        type: 'error', 
+        text: '⚠️ कृपया सभी अमान्य इनपुट ठीक करें (Please resolve the highlighted validation errors)' 
+      });
       return;
     }
 
     const officialRouting = regData.areaType === 'rural'
-      ? `BDO (${regData.tehsil || 'Block'}) & DM (${regData.district})`
-      : `Ward Officer (${regData.panchayatOrWard || 'Ward'}) & Municipal Commissioner (${regData.district})`;
+      ? `BDO (${regData.tehsil}) & DM (${regData.district})`
+      : `Ward Officer (${regData.panchayatOrWard}) & Municipal Commissioner (${regData.district})`;
 
     const citizen = {
       fullName: regData.fullName,
@@ -208,8 +348,8 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
       state: regData.state,
       district: regData.district,
       areaType: regData.areaType,
-      tehsil: regData.tehsil || (regData.areaType === 'rural' ? 'Taluka HQ' : 'Central Zone'),
-      panchayatOrWard: regData.panchayatOrWard || (regData.areaType === 'rural' ? 'Gram Panchayat' : 'Ward 1'),
+      tehsil: regData.tehsil,
+      panchayatOrWard: regData.panchayatOrWard,
       pincode: regData.pincode,
       language: regData.preferredLanguage || currentLang,
       officialRouting: officialRouting,
@@ -328,7 +468,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
   }
 
   /* =========================================================================
-     SCREEN 2: SIGN UP / LOGIN WITH SMART GOVERNANCE DATA & EASY REGISTRATION
+     SCREEN 2: SIGN UP / LOGIN (WITH STRICT VALIDATIONS & SWIGGY/FLIPKART LOCATION)
      ========================================================================= */
   const currentDistricts = STATES_AND_DISTRICTS[regData.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
@@ -399,9 +539,9 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
       {authMode === 'register' ? (
         /* =========================================================================
-           REGISTRATION FORM: With Smart Pincode, GPS, & Linked Dropdowns
+           REGISTRATION FORM: Strictly Validated Indian Inputs + Swiggy/Flipkart Location
            ========================================================================= */
-        <form onSubmit={handleRegisterSubmit} className="auth-form registration-form">
+        <form onSubmit={handleRegisterSubmit} className="auth-form registration-form" noValidate>
           {/* 1-Click DigiLocker Fast-Fill Helper */}
           <div className="digilocker-helper-banner">
             <div className="digi-text">
@@ -422,87 +562,139 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             <span>{t.sec1}</span>
           </div>
 
+          {/* Full Name Input */}
           <div className="form-group">
             <label>{t.fullName} <span className="req">*</span></label>
             <div className="input-wrapper">
               <span className="input-icon">👤</span>
               <input 
                 type="text"
-                className="input-field"
+                className={`input-field ${touched.fullName && errors.fullName ? 'input-error' : ''}`}
                 placeholder={t.fullNamePlaceholder}
                 value={regData.fullName}
-                onChange={(e) => setRegData({ ...regData, fullName: e.target.value })}
+                onChange={(e) => handleNameChange(e.target.value)}
+                onBlur={() => handleBlur('fullName')}
                 required
               />
             </div>
-            <small className="field-hint">📌 {t.fullNameHint}</small>
+            {touched.fullName && errors.fullName ? (
+              <span className="error-text">⚠️ {errors.fullName}</span>
+            ) : (
+              <small className="field-hint">📌 {t.fullNameHint}</small>
+            )}
           </div>
 
           <div className="form-row">
+            {/* Mobile Number Input (10 Digits Starting with 6-9) */}
             <div className="form-group">
-              <label>{t.mobile} <span className="req">*</span></label>
+              <label>{t.mobile} (10 Digits) <span className="req">*</span></label>
               <div className="input-wrapper">
                 <span className="input-icon">📱</span>
                 <input 
                   type="tel"
-                  className="input-field"
-                  placeholder="10-Digit Mobile"
+                  className={`input-field ${touched.mobile && errors.mobile ? 'input-error' : ''}`}
+                  placeholder="e.g. 9822012345"
                   value={regData.mobile}
-                  onChange={(e) => setRegData({ ...regData, mobile: e.target.value })}
+                  onChange={(e) => handleMobileChange(e.target.value)}
+                  onBlur={() => handleBlur('mobile')}
+                  maxLength="10"
                   required
                 />
               </div>
-              <small className="field-hint">📌 {t.mobileHint}</small>
+              {touched.mobile && errors.mobile ? (
+                <span className="error-text">⚠️ {errors.mobile}</span>
+              ) : (
+                <small className="field-hint">📌 {t.mobileHint}</small>
+              )}
             </div>
 
+            {/* Email Address */}
             <div className="form-group">
               <label>{t.email}</label>
               <div className="input-wrapper">
                 <span className="input-icon">✉️</span>
                 <input 
                   type="email"
-                  className="input-field"
+                  className={`input-field ${touched.email && errors.email ? 'input-error' : ''}`}
                   placeholder="name@example.com"
                   value={regData.email}
-                  onChange={(e) => setRegData({ ...regData, email: e.target.value })}
+                  onChange={(e) => {
+                    setRegData({ ...regData, email: e.target.value });
+                    validateField('email', e.target.value);
+                  }}
+                  onBlur={() => handleBlur('email')}
                 />
               </div>
-              <small className="field-hint">📌 {t.emailHint}</small>
+              {touched.email && errors.email ? (
+                <span className="error-text">⚠️ {errors.email}</span>
+              ) : (
+                <small className="field-hint">📌 {t.emailHint}</small>
+              )}
             </div>
           </div>
 
-          {/* Section 2: Administrative Geography & Governance Routing */}
+          {/* =========================================================================
+             SECTION 2: FLIPKART / SWIGGY STYLE LOCATION PICKER & ADMINISTRATIVE GEOGRAPHY
+             ========================================================================= */}
           <div className="section-title">
             <div className="sec-title-row">
               <span>{t.sec2}</span>
-              <button 
-                type="button" 
-                className="gps-detect-btn"
-                onClick={handleGpsJurisdiction}
-                title="Detect GPS"
-              >
-                📍 Auto-Detect GPS
-              </button>
             </div>
           </div>
 
-          {/* Smart Pincode Input (with Instant State & District Detection) */}
+          {/* Swiggy / Flipkart Style Location Mode Switcher */}
+          <div className="location-permission-card">
+            <div className="loc-permission-header">
+              <strong>📍 स्थान चयन विधि (Choose How to Set Your Location):</strong>
+            </div>
+            
+            <div className="loc-permission-actions">
+              <button
+                type="button"
+                className={`loc-perm-btn ${locationMode === 'gps_permission' ? 'active-perm' : ''}`}
+                onClick={requestLocationPermission}
+              >
+                📡 डिवाइस लोकेशन शेयर करें (Share Live GPS Permission)
+              </button>
+              
+              <button
+                type="button"
+                className={`loc-perm-btn ${locationMode === 'manual' ? 'active-perm' : ''}`}
+                onClick={() => setLocationMode('manual')}
+              >
+                ✍️ मैन्युअल रूप से चुनें (Select Manually from Dropdown)
+              </button>
+            </div>
+
+            {gpsStatus && (
+              <div className={`gps-status-banner ${gpsStatus.granted ? 'success-status' : 'warn-status'}`}>
+                {gpsStatus.message}
+              </div>
+            )}
+          </div>
+
+          {/* Smart Pincode Input (Strict 6 Digits, 1st digit 1-8) */}
           <div className="form-row">
             <div className="form-group">
-              <label>{t.pincode} <span className="req">*</span></label>
+              <label>{t.pincode} (6 Digits) <span className="req">*</span></label>
               <div className="input-wrapper">
                 <span className="input-icon">📮</span>
                 <input 
                   type="text"
-                  className="input-field pincode-highlight"
-                  placeholder="e.g. 411001 / 854301 / 600001"
+                  className={`input-field pincode-highlight ${touched.pincode && errors.pincode ? 'input-error' : ''}`}
+                  placeholder="उदा. 411001, 854301, 600001"
                   value={regData.pincode}
                   onChange={(e) => handlePincodeChange(e.target.value)}
-                  maxLength="8"
+                  onBlur={() => handleBlur('pincode')}
+                  maxLength="6"
                   required
                 />
               </div>
-              <small className="field-hint">📌 {t.pincodeHint}</small>
+              {touched.pincode && errors.pincode ? (
+                <span className="error-text">⚠️ {errors.pincode}</span>
+              ) : (
+                <small className="field-hint">📌 {t.pincodeHint}</small>
+              )}
             </div>
 
             <div className="form-group">
@@ -531,7 +723,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             </div>
           )}
 
-          {/* State & District Linked Dropdowns */}
+          {/* State & District Strictly Linked Dropdowns */}
           <div className="form-row">
             <div className="form-group">
               <label>{t.state} <span className="req">*</span></label>
@@ -541,11 +733,13 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                 onChange={(e) => {
                   const newState = e.target.value;
                   const newDistList = STATES_AND_DISTRICTS[newState] || [];
+                  const defaultDist = newDistList[0] || '';
                   setRegData({ 
                     ...regData, 
                     state: newState, 
-                    district: newDistList[0] || '' 
+                    district: defaultDist 
                   });
+                  validateField('district', defaultDist);
                 }}
                 required
               >
@@ -557,18 +751,26 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
             </div>
 
             <div className="form-group">
-              <label>{t.district} <span className="req">*</span></label>
+              <label>{t.district} (City / District) <span className="req">*</span></label>
               <select
-                className="input-field select-field"
+                className={`input-field select-field ${touched.district && errors.district ? 'input-error' : ''}`}
                 value={regData.district}
-                onChange={(e) => setRegData({ ...regData, district: e.target.value })}
+                onChange={(e) => {
+                  setRegData({ ...regData, district: e.target.value });
+                  validateField('district', e.target.value);
+                }}
+                onBlur={() => handleBlur('district')}
                 required
               >
                 {currentDistricts.map((dst) => (
                   <option key={dst} value={dst}>{dst}</option>
                 ))}
               </select>
-              <small className="field-hint">📌 {t.districtHint}</small>
+              {touched.district && errors.district ? (
+                <span className="error-text">⚠️ {errors.district}</span>
+              ) : (
+                <small className="field-hint">📌 {t.districtHint}</small>
+              )}
             </div>
           </div>
 
@@ -601,25 +803,41 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   <label>{t.tehsil} <span className="req">*</span></label>
                   <input 
                     type="text"
-                    className="input-field"
+                    className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
                     placeholder="उदा. Haveli / Kasba / Jagraon Block"
                     value={regData.tehsil}
-                    onChange={(e) => setRegData({ ...regData, tehsil: e.target.value })}
+                    onChange={(e) => {
+                      setRegData({ ...regData, tehsil: e.target.value });
+                      validateField('tehsil', e.target.value, 'rural');
+                    }}
+                    onBlur={() => handleBlur('tehsil')}
                     required
                   />
-                  <small className="field-hint">📌 {t.tehsilHint}</small>
+                  {touched.tehsil && errors.tehsil ? (
+                    <span className="error-text">⚠️ {errors.tehsil}</span>
+                  ) : (
+                    <small className="field-hint">📌 {t.tehsilHint}</small>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>{t.panchayat} <span className="req">*</span></label>
                   <input 
                     type="text"
-                    className="input-field"
+                    className={`input-field ${touched.panchayatOrWard && errors.panchayatOrWard ? 'input-error' : ''}`}
                     placeholder="उदा. Wagholi / Srinagar Panchayat"
                     value={regData.panchayatOrWard}
-                    onChange={(e) => setRegData({ ...regData, panchayatOrWard: e.target.value })}
+                    onChange={(e) => {
+                      setRegData({ ...regData, panchayatOrWard: e.target.value });
+                      validateField('panchayatOrWard', e.target.value, 'rural');
+                    }}
+                    onBlur={() => handleBlur('panchayatOrWard')}
                     required
                   />
-                  <small className="field-hint">📌 {t.panchayatHint}</small>
+                  {touched.panchayatOrWard && errors.panchayatOrWard ? (
+                    <span className="error-text">⚠️ {errors.panchayatOrWard}</span>
+                  ) : (
+                    <small className="field-hint">📌 {t.panchayatHint}</small>
+                  )}
                 </div>
               </>
             ) : (
@@ -628,25 +846,41 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                   <label>नगर निगम / जोन (Municipal Corporation / Zone) <span className="req">*</span></label>
                   <input 
                     type="text"
-                    className="input-field"
+                    className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
                     placeholder="उदा. Pune PMC / GCC Chennai / KMC"
                     value={regData.tehsil}
-                    onChange={(e) => setRegData({ ...regData, tehsil: e.target.value })}
+                    onChange={(e) => {
+                      setRegData({ ...regData, tehsil: e.target.value });
+                      validateField('tehsil', e.target.value, 'urban');
+                    }}
+                    onBlur={() => handleBlur('tehsil')}
                     required
                   />
-                  <small className="field-hint">📌 नगर निगम जोनल कार्यालय</small>
+                  {touched.tehsil && errors.tehsil ? (
+                    <span className="error-text">⚠️ {errors.tehsil}</span>
+                  ) : (
+                    <small className="field-hint">📌 नगर निगम जोनल कार्यालय</small>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>{t.municipalWard} <span className="req">*</span></label>
                   <input 
                     type="text"
-                    className="input-field"
+                    className={`input-field ${touched.panchayatOrWard && errors.panchayatOrWard ? 'input-error' : ''}`}
                     placeholder="उदा. Ward No. 14 / Ballygunge"
                     value={regData.panchayatOrWard}
-                    onChange={(e) => setRegData({ ...regData, panchayatOrWard: e.target.value })}
+                    onChange={(e) => {
+                      setRegData({ ...regData, panchayatOrWard: e.target.value });
+                      validateField('panchayatOrWard', e.target.value, 'urban');
+                    }}
+                    onBlur={() => handleBlur('panchayatOrWard')}
                     required
                   />
-                  <small className="field-hint">📌 {t.municipalWardHint}</small>
+                  {touched.panchayatOrWard && errors.panchayatOrWard ? (
+                    <span className="error-text">⚠️ {errors.panchayatOrWard}</span>
+                  ) : (
+                    <small className="field-hint">📌 {t.municipalWardHint}</small>
+                  )}
                 </div>
               </>
             )}
@@ -659,26 +893,41 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label>{t.createPass} <span className="req">*</span></label>
+              <label>{t.createPass} (Min. 6 Chars) <span className="req">*</span></label>
               <input 
                 type="password"
-                className="input-field"
+                className={`input-field ${touched.password && errors.password ? 'input-error' : ''}`}
                 placeholder="Create Password"
                 value={regData.password}
-                onChange={(e) => setRegData({ ...regData, password: e.target.value })}
+                onChange={(e) => {
+                  setRegData({ ...regData, password: e.target.value });
+                  validateField('password', e.target.value);
+                }}
+                onBlur={() => handleBlur('password')}
                 required
               />
+              {touched.password && errors.password && (
+                <span className="error-text">⚠️ {errors.password}</span>
+              )}
             </div>
+
             <div className="form-group">
               <label>{t.confirmPass} <span className="req">*</span></label>
               <input 
                 type="password"
-                className="input-field"
+                className={`input-field ${touched.confirmPassword && errors.confirmPassword ? 'input-error' : ''}`}
                 placeholder="Confirm Password"
                 value={regData.confirmPassword}
-                onChange={(e) => setRegData({ ...regData, confirmPassword: e.target.value })}
+                onChange={(e) => {
+                  setRegData({ ...regData, confirmPassword: e.target.value });
+                  validateField('confirmPassword', e.target.value);
+                }}
+                onBlur={() => handleBlur('confirmPassword')}
                 required
               />
+              {touched.confirmPassword && errors.confirmPassword && (
+                <span className="error-text">⚠️ {errors.confirmPassword}</span>
+              )}
             </div>
           </div>
 
@@ -688,9 +937,9 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
         </form>
       ) : (
         /* =========================================================================
-           LOGIN FORM: Mobile / OTP / Password
+           LOGIN FORM: Validated Mobile & OTP / Password
            ========================================================================= */
-        <form onSubmit={handleLoginSubmit} className="auth-form">
+        <form onSubmit={handleLoginSubmit} className="auth-form" noValidate>
           <div className="method-selector">
             <button
               type="button"
@@ -709,7 +958,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
           </div>
 
           <div className="form-group">
-            <label>मोबाइल नंबर / ईमेल (Mobile Number / Email) <span className="req">*</span></label>
+            <label>मोबाइल नंबर / ईमेल (10-Digit Mobile / Email) <span className="req">*</span></label>
             <div className="input-wrapper">
               <span className="input-icon">🆔</span>
               <input 
@@ -734,7 +983,7 @@ function Login({ onLoginSuccess, onContinueAsGuest }) {
                     className="input-field"
                     placeholder="6-अंकों का OTP (e.g. 942108)"
                     value={loginOtp}
-                    onChange={(e) => setLoginOtp(e.target.value)}
+                    onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     maxLength="6"
                     required
                   />
