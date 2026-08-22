@@ -1,0 +1,15 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  /* Mostly white with a slight brownish tint */
+  background-color: #FCF8F5;
+  font-family: Arial, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
