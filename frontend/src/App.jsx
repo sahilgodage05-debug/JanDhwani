@@ -241,6 +241,19 @@ function App() {
   const activeLoc = getActiveLocationSummary();
   const availableDistricts = STATES_AND_DISTRICTS[customLocation.state] || STATES_AND_DISTRICTS['Maharashtra'];
 
+  if (activeTab === 'login') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fcf8f5' }}>
+        <Login 
+          activeLanguage={selectedLanguage}
+          onLanguageChange={(newLang) => setSelectedLanguage(newLang)}
+          onLoginSuccess={handleLoginSuccess}
+          onContinueAsGuest={() => setActiveTab('grievance')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="main-layout" style={{ maxWidth: '1400px', margin: '0 auto', padding: '20px' }}>
       {/* Top Portal Navigation */}
@@ -248,15 +261,14 @@ function App() {
         <div className="nav-buttons">
           <button 
             type="button"
-            className={`nav-btn ${activeTab === 'login' ? 'active' : ''}`}
+            className="nav-btn"
             onClick={() => setActiveTab('login')}
           >
             {currentUser ? '👤 ' + (t.fullName || 'Citizen') : '🌐 ' + t.portalTitle}
           </button>
           <button 
             type="button"
-            className={`nav-btn ${activeTab === 'grievance' ? 'active' : ''}`}
-            onClick={() => setActiveTab('grievance')}
+            className="nav-btn active"
           >
             ✍️ {t.fileGrievanceTitle}
           </button>
@@ -279,15 +291,7 @@ function App() {
         )}
       </nav>
 
-      {/* Main Content Area */}
-      {activeTab === 'login' ? (
-        <Login 
-          activeLanguage={selectedLanguage}
-          onLanguageChange={(newLang) => setSelectedLanguage(newLang)}
-          onLoginSuccess={handleLoginSuccess}
-          onContinueAsGuest={() => setActiveTab('grievance')}
-        />
-      ) : (
+
         <div className="container" style={{ padding: 0, margin: 0, width: '100%' }}>
           <div className="card">
             <div className="card-header">
@@ -563,7 +567,7 @@ function App() {
           </div>
           <Map3D />
         </div>
-      )}
+
     </div>
   );
 }
