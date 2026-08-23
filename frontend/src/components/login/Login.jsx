@@ -364,20 +364,20 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         {/* Civic Issue Preview Grid */}
         <div className="login-issue-images">
           <div className="issue-img-container">
-            <img src="/water.jpg" alt="Water Scarcity" className="issue-img" />
+            <img src="/issue1.png" alt="Water Scarcity" className="issue-img" />
             <div className="issue-caption">Water Crisis</div>
           </div>
           <div className="issue-img-container">
-            <img src="https://images.unsplash.com/photo-1542385151-efd9000785a0?auto=format&fit=crop&w=300&q=80" alt="Rural Infrastructure" className="issue-img" />
-            <div className="issue-caption">Rural Infra</div>
-          </div>
-          <div className="issue-img-container">
-            <img src="https://images.unsplash.com/photo-1517596048123-a0e23e271a39?auto=format&fit=crop&w=300&q=80" alt="Potholes" className="issue-img" />
+            <img src="/issue2.jpg" alt="Potholes" className="issue-img" />
             <div className="issue-caption">Road Damage</div>
           </div>
           <div className="issue-img-container">
-            <img src="https://images.unsplash.com/photo-1560961730-e37e96b79796?auto=format&fit=crop&w=300&q=80" alt="Waste Management" className="issue-img" />
-            <div className="issue-caption">Sanitation</div>
+            <img src="/issue3.jpg" alt="Rural Infrastructure" className="issue-img" />
+            <div className="issue-caption">Rural Infra</div>
+          </div>
+          <div className="issue-img-container">
+            <img src="/issue4.png" alt="Power Issue" className="issue-img" />
+            <div className="issue-caption">Power Outage</div>
           </div>
         </div>
       </div>
