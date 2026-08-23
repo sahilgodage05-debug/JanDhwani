@@ -687,10 +687,21 @@ function App() {
           </button>
           <button 
             type="button"
-            className="nav-btn active"
+            className={`nav-btn ${activeTab === 'grievance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('grievance')}
           >
             {t.fileGrievanceTitle}
           </button>
+          
+          {currentUser && (
+            <button 
+              type="button"
+              className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`}
+              onClick={() => setActiveTab('history')}
+            >
+              My Complaints (History)
+            </button>
+          )}
 
         </div>
 
@@ -734,6 +745,74 @@ function App() {
           onBackToPortal={() => setActiveTab('grievance')}
           activeLanguage={selectedLanguage}
         />
+      ) : activeTab === 'history' ? (
+        /* MY COMPLAINTS / HISTORY VIEW */
+        <div className="card" style={{ padding: '30px' }}>
+          <h2>My Complaints (History)</h2>
+          <p style={{ color: '#666', marginBottom: '20px' }}>View the status, assigned ministry, and AI routing analysis of your submitted grievances.</p>
+          
+          {activeComplaints.filter(c => c.citizen === (currentUser?.fullName || 'Citizen')).length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', background: '#f9f9f9', borderRadius: '10px' }}>
+              <p>You have not submitted any complaints yet.</p>
+              <button className="auth-submit-btn" style={{ maxWidth: '200px', marginTop: '15px' }} onClick={() => setActiveTab('grievance')}>File a Grievance</button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {activeComplaints.filter(c => c.citizen === (currentUser?.fullName || 'Citizen')).map(complaint => (
+                <div key={complaint.id} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '20px', background: '#fff', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                    <h3 style={{ margin: 0, color: '#1a73e8' }}>{complaint.id}</h3>
+                    <span style={{ 
+                      padding: '5px 12px', 
+                      borderRadius: '20px', 
+                      fontSize: '0.85rem', 
+                      fontWeight: 'bold',
+                      background: complaint.status === 'Resolved' ? '#e6f4ea' : '#fff3e0',
+                      color: complaint.status === 'Resolved' ? '#1e8e3e' : '#f57c00'
+                    }}>
+                      {complaint.status}
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 5px 0' }}>AI Formatted Summary</p>
+                      <p style={{ fontWeight: '500', margin: '0 0 15px 0' }}>{complaint.summary}</p>
+                      
+                      <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 5px 0' }}>Assigned Ministry / Department</p>
+                      <p style={{ fontWeight: 'bold', color: '#333', margin: 0 }}>
+                        🏢 {complaint.department === 'Roads & Infrastructure' ? 'Ministry of Road Transport & Highways' : 
+                            complaint.department === 'Water & Sanitation' ? 'Ministry of Jal Shakti' : 
+                            complaint.department === 'Electricity & Power' ? 'Ministry of Power' : 
+                            complaint.department === 'Public Health' ? 'Ministry of Health & Family Welfare' : 
+                            'Municipal Corporation (Local Body)'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 5px 0' }}>Routing Status</p>
+                      <p style={{ margin: '0 0 15px 0' }}>📍 Routed to: <strong>{complaint.routing || complaint.district + ' Authorities'}</strong></p>
+                      
+                      <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 5px 0' }}>AI Urgency Score</p>
+                      <p style={{ margin: 0 }}>
+                        <span style={{ 
+                          display: 'inline-block',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          background: complaint.urgency >= 7 ? '#fce8e6' : complaint.urgency >= 4 ? '#fef7e0' : '#e6f4ea',
+                          color: complaint.urgency >= 7 ? '#d93025' : complaint.urgency >= 4 ? '#f29900' : '#1e8e3e',
+                          fontWeight: 'bold'
+                        }}>
+                          {complaint.urgency}/10
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       ) : activeTab === 'login' ? (
         /* STEP 1: CITIZEN REGISTRATION & LOGIN */
         <Login 
