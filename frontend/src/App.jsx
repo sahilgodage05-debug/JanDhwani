@@ -6,6 +6,7 @@ import { ALL_LANGUAGES, STATES_AND_DISTRICTS, DEFAULT_HOTSPOTS, INITIAL_RESOLVED
 import { UI_STRINGS } from './translations';
 import './App.css';
 import Map3D from './Map3D';
+import GovernmentEmblem from './components/GovernmentEmblem';
 
 // 1-Click Voice Simulation Audio Scripts across Indian Languages for Evaluation
 const VOICE_DEMO_SAMPLES = [
