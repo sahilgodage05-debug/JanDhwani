@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Map as MapIcon, Compass, Navigation, RefreshCcw, Layers, Search, User, Filter, Share2, ZoomIn, ZoomOut, Maximize, FileText, CheckCircle2 } from 'lucide-react';
+
 import './DigitalTwinMap.css';
 
 const GOV_LEVELS = [

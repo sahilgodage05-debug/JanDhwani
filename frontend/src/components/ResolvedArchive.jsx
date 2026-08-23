@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { CheckCircle2, ChevronRight, MapPin, Map, Star, Clock } from 'lucide-react';
+
 import './ResolvedArchive.css';
 
 function ResolvedArchive({ records, onClearArchive, onDeleteRecord, onBackToMap, onBackToPortal, activeLanguage = 'en-IN' }) {
