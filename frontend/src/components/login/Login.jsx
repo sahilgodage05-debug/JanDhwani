@@ -487,192 +487,34 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
 
             </div>
             <div className="form-column">
-              {/* Section 2: Location & Administrative Geography */}
-              <div className="section-title">
-            <span>{t.sec2}</span>
-          </div>
-
-
-
-          {/* Pincode & Language */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>{t.pincode} <span className="req">*</span></label>
-              <div className="input-wrapper">
-                <input 
-                  type="text"
-                  className={`input-field pincode-highlight ${touched.pincode && errors.pincode ? 'input-error' : ''}`}
-                  placeholder="e.g. 411001, 854301, 110001"
-                  value={regData.pincode}
-                  onChange={(e) => handlePincodeChange(e.target.value)}
-                  onBlur={() => handleBlur('pincode')}
-                  maxLength="6"
-                  required
-                />
-              </div>
-              {touched.pincode && errors.pincode && (
-                <span className="error-text">{errors.pincode}</span>
+                          <div className="form-group">
+              <label>Aadhaar Number (UIDAI) <span className="req">*</span></label>
+              <input 
+                type="text"
+                className={`input-field ${touched.aadhaar && errors.aadhaar ? 'input-error' : ''}`}
+                placeholder="12-digit Aadhaar"
+                value={regData.aadhaar}
+                onChange={(e) => handleAadhaarChange(e.target.value)}
+                onBlur={() => handleBlur('aadhaar')}
+                required
+              />
+              {touched.aadhaar && errors.aadhaar && (
+                <span className="error-text">{errors.aadhaar}</span>
               )}
             </div>
-
-            <div className="form-group">
-              <label>{t.prefLang} <span className="req">*</span></label>
-              <select 
-                className="input-field select-field"
-                value={regData.preferredLanguage}
-                onChange={(e) => {
-                  setRegData({ ...regData, preferredLanguage: e.target.value });
-                  setCurrentLang(e.target.value);
-                  if (onLanguageChange) onLanguageChange(e.target.value);
-                }}
+            
+            <div className="form-group" style={{gridColumn: '1 / -1', background: '#e3f2fd', padding: '15px', borderRadius: '10px', marginTop: '10px'}}>
+              <label style={{color: '#1565c0'}}>GPS Location Verification <span className="req">*</span></label>
+              <p style={{fontSize: '0.85rem', color: '#333', marginBottom: '10px'}}>Location is mandatory to route your grievance to the correct local authority.</p>
+              <button 
+                type="button" 
+                className={`gps-btn ${gpsStatus?.granted ? 'active' : ''}`}
+                onClick={requestLocationPermission}
+                style={{width: '100%', padding: '12px', background: gpsStatus?.granted ? '#4caf50' : '#1a73e8', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold'}}
               >
-                {ALL_LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.native} ({lang.name})
-                  </option>
-                ))}
-              </select>
+                {gpsStatus?.granted ? '✓ GPS Location Detected' : '📍 Detect My Location'}
+              </button>
             </div>
-          </div>
-
-          {pincodeDetectedInfo && (
-            <div className="pincode-detected-badge">
-              {pincodeDetectedInfo}
-            </div>
-          )}
-
-          {/* State & District Linked Dropdowns */}
-          <div className="form-row">
-            <div className="form-group">
-              <label>{t.state} <span className="req">*</span></label>
-              <select 
-                className="input-field select-field"
-                value={regData.state}
-                onChange={(e) => {
-                  const newState = e.target.value;
-                  const newDistList = STATES_AND_DISTRICTS[newState] || [];
-                  const defaultDist = newDistList[0] || '';
-                  setRegData({ 
-                    ...regData, 
-                    state: newState, 
-                    district: defaultDist 
-                  });
-                  validateField('district', defaultDist);
-                }}
-                required
-              >
-                {Object.keys(STATES_AND_DISTRICTS).map((st) => (
-                  <option key={st} value={st}>{st}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>{t.district} <span className="req">*</span></label>
-              <select
-                className={`input-field select-field ${touched.district && errors.district ? 'input-error' : ''}`}
-                value={regData.district}
-                onChange={(e) => {
-                  setRegData({ ...regData, district: e.target.value });
-                  validateField('district', e.target.value);
-                }}
-                onBlur={() => handleBlur('district')}
-                required
-              >
-                {currentDistricts.map((dst) => (
-                  <option key={dst} value={dst}>{dst}</option>
-                ))}
-              </select>
-              {touched.district && errors.district && (
-                <span className="error-text">{errors.district}</span>
-              )}
-            </div>
-          </div>
-
-
-
-          {/* Dynamic Hierarchy based on Rural vs Urban */}
-          <div className="form-row">
-            {regData.areaType === 'rural' ? (
-              <>
-                <div className="form-group">
-                  <label>{t.tehsil} <span className="req">*</span></label>
-                  <input 
-                    type="text"
-                    className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
-                    placeholder={currentLang === 'en-IN' ? 'e.g. Haveli / Kasba Block' : 'उदा. Haveli / Kasba Block'}
-                    value={regData.tehsil}
-                    onChange={(e) => {
-                      setRegData({ ...regData, tehsil: e.target.value });
-                      validateField('tehsil', e.target.value, 'rural');
-                    }}
-                    onBlur={() => handleBlur('tehsil')}
-                    required
-                  />
-                  {touched.tehsil && errors.tehsil && (
-                    <span className="error-text">{errors.tehsil}</span>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>{t.panchayat} <span className="req">*</span></label>
-                  <input 
-                    type="text"
-                    className={`input-field ${touched.panchayatOrWard && errors.panchayatOrWard ? 'input-error' : ''}`}
-                    placeholder={currentLang === 'en-IN' ? 'e.g. Wagholi / Loni' : 'उदा. Wagholi / Srinagar'}
-                    value={regData.panchayatOrWard}
-                    onChange={(e) => {
-                      setRegData({ ...regData, panchayatOrWard: e.target.value });
-                      validateField('panchayatOrWard', e.target.value, 'rural');
-                    }}
-                    onBlur={() => handleBlur('panchayatOrWard')}
-                    required
-                  />
-                  {touched.panchayatOrWard && errors.panchayatOrWard && (
-                    <span className="error-text">{errors.panchayatOrWard}</span>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="form-group">
-                  <label>{t.municipalCorp} <span className="req">*</span></label>
-                  <input 
-                    type="text"
-                    className={`input-field ${touched.tehsil && errors.tehsil ? 'input-error' : ''}`}
-                    placeholder={currentLang === 'en-IN' ? 'e.g. Pune PMC / GCC / KMC' : 'उदा. PMC / GCC / KMC'}
-                    value={regData.tehsil}
-                    onChange={(e) => {
-                      setRegData({ ...regData, tehsil: e.target.value });
-                      validateField('tehsil', e.target.value, 'urban');
-                    }}
-                    onBlur={() => handleBlur('tehsil')}
-                    required
-                  />
-                  {touched.tehsil && errors.tehsil && (
-                    <span className="error-text">{errors.tehsil}</span>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>{t.municipalWard} <span className="req">*</span></label>
-                  <input 
-                    type="text"
-                    className={`input-field ${touched.panchayatOrWard && errors.panchayatOrWard ? 'input-error' : ''}`}
-                    placeholder={currentLang === 'en-IN' ? 'e.g. Ward No. 14 / Central Zone' : 'उदा. Ward No. 14 / Ballygunge'}
-                    value={regData.panchayatOrWard}
-                    onChange={(e) => {
-                      setRegData({ ...regData, panchayatOrWard: e.target.value });
-                      validateField('panchayatOrWard', e.target.value, 'urban');
-                    }}
-                    onBlur={() => handleBlur('panchayatOrWard')}
-                    required
-                  />
-                  {touched.panchayatOrWard && errors.panchayatOrWard && (
-                    <span className="error-text">{errors.panchayatOrWard}</span>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
 
           {/* Section 3: Security */}
           <div className="section-title">
