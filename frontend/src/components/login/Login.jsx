@@ -360,6 +360,26 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
 
         <h1 className="login-title">{t.portalTitle}</h1>
         <p className="login-tagline">{t.portalSub}</p>
+
+        {/* Civic Issue Preview Grid */}
+        <div className="login-issue-images">
+          <div className="issue-img-container">
+            <img src="https://images.unsplash.com/photo-1590059345028-2ce16a827404?auto=format&fit=crop&w=300&q=80" alt="Water Scarcity" className="issue-img" />
+            <div className="issue-caption">Water Crisis</div>
+          </div>
+          <div className="issue-img-container">
+            <img src="https://images.unsplash.com/photo-1542385151-efd9000785a0?auto=format&fit=crop&w=300&q=80" alt="Rural Infrastructure" className="issue-img" />
+            <div className="issue-caption">Rural Infra</div>
+          </div>
+          <div className="issue-img-container">
+            <img src="https://images.unsplash.com/photo-1517596048123-a0e23e271a39?auto=format&fit=crop&w=300&q=80" alt="Potholes" className="issue-img" />
+            <div className="issue-caption">Road Damage</div>
+          </div>
+          <div className="issue-img-container">
+            <img src="https://images.unsplash.com/photo-1560961730-e37e96b79796?auto=format&fit=crop&w=300&q=80" alt="Waste Management" className="issue-img" />
+            <div className="issue-caption">Sanitation</div>
+          </div>
+        </div>
       </div>
 
 
