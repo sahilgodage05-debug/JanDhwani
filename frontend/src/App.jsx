@@ -97,6 +97,7 @@ function App() {
   const canvasRef = useRef(null);
 
   // Location Confirmation State
+  const [isLivePhoto, setIsLivePhoto] = useState(false);
   const [locationSource, setLocationSource] = useState('registered'); // 'registered' | 'gps' | 'custom'
   const [gpsCoords, setGpsCoords] = useState(null);
   const [customLocation, setCustomLocation] = useState({
@@ -378,36 +379,19 @@ function App() {
     }, 1000);
   };
 
-  // Anti-Fraud Verification: Strictly Block Screenshots and Downloaded Web Images
+  // Allow Old Photos / Gallery Uploads (Bypassing strict anti-fraud checks for ease of use)
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const fileName = file.name.toLowerCase();
 
-      // 1. Rigorous Anti-Fraud Detection: Screenshot / Screen Capture signatures
-      const isScreenshot = 
-        /screenshot|screen_shot|screen shot|screen-shot|capture|snip|screencap|ss_|img_\d{4}\.png/i.test(fileName) ||
-        (file.type === 'image/png' && (file.size < 50000 || fileName.includes('png')));
+      // Mark as a Gallery Photo (Not Live Camera)
+      setIsLivePhoto(false);
+      
+      // Auto-trigger manual location entry for old gallery photos
+      setLocationSource('custom');
+      setIsLocationConfirmed(true);
 
-      // 2. Rigorous Anti-Fraud Detection: Downloaded Web Images / Stock / Social Media signatures
-      const isDownloaded = 
-        /download|downloaded|images\s*\(\d+\)|whatsapp_image|fb_img|image-\d+|stock|getty|shutterstock|unsplash|google|preview|thumb|wallpaper|pinterest|insta|telegram|save_/i.test(fileName);
-
-      if (isScreenshot || isDownloaded) {
-        // REJECT SCREENSHOTS & DOWNLOADED IMAGES
-        const reason = isScreenshot
-          ? "Screenshots Prohibited: To prevent fraud and ensure verified ground reality, JanDhwani does not accept screenshots. Please take a live photo directly using your device camera at the incident location."
-          : "Downloaded Images Prohibited: Web downloads, stock images, and forwarded social media photos are strictly prohibited. Please capture a live photo directly with your camera at the incident spot.";
-        
-        setImageRejectReason(reason);
-        setImageFile(null);
-        setImagePreview(null);
-        setImageAiAnalysis(null);
-        e.target.value = ''; // Clear file input
-        return;
-      }
-
-      // Genuine Camera Photo Accepted
+      // Accept Photo
       setImageRejectReason(null);
       setImageFile(file);
       const url = URL.createObjectURL(file);
@@ -469,6 +453,11 @@ function App() {
           setImageFile(liveFile);
           setImagePreview(URL.createObjectURL(blob));
           setImageRejectReason(null);
+          setIsLivePhoto(true);
+          
+          // Trigger live GPS fetch immediately since it's a live photo
+          fetchLiveGps();
+          
           closeLiveCamera();
           runGeminiVisionVerification(liveFile);
         }
@@ -1221,8 +1210,30 @@ function App() {
                   <span className="loc-sub">{t.locConfirmSub}</span>
                 </div>
 
+                {/* Contextual Photo Location Feedback */}
+                {imageFile && (
+                  <div className={`loc-photo-badge ${isLivePhoto ? 'live' : 'gallery'}`} style={{
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    marginBottom: '15px',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    backgroundColor: isLivePhoto ? '#e8f5e9' : '#fff3e0',
+                    color: isLivePhoto ? '#2e7d32' : '#e65100',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    {isLivePhoto ? (
+                      <>✅ Live GPS Location Attached via Camera</>
+                    ) : (
+                      <>⚠️ Please confirm the manual location for this old gallery photo.</>
+                    )}
+                  </div>
+                )}
+
                 {/* Location Source Selector Tabs */}
-                <div className="loc-source-tabs">
+                <div className="loc-source-tabs" style={{ display: isLivePhoto ? 'none' : 'flex' }}>
                   <button
                     type="button"
                     className={`loc-tab ${locationSource === 'registered' ? 'active' : ''}`}
