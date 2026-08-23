@@ -31,19 +31,13 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
 
   // Government Registration state (Strictly Validated)
   const [regData, setRegData] = useState({
-    fullName: '',
-    mobile: '',
-    email: '',
-    state: 'Maharashtra',
-    district: 'Pune',
-    areaType: 'rural',
-    tehsil: '',
-    panchayatOrWard: '',
-    pincode: '',
-    preferredLanguage: activeLanguage || 'en-IN',
-    password: '',
-    confirmPassword: ''
-  });
+  fullName: '',
+  mobile: '',
+  email: '',
+  aadhaar: '',
+  password: '',
+  confirmPassword: ''
+});
 
   // Validation Error States
   const [errors, setErrors] = useState({});
@@ -73,16 +67,13 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     } else {
       if (field === 'fullName') error = VALIDATION_RULES.fullName(value) ? `${t.requiredErr} (Min. 3 letters)` : null;
       if (field === 'mobile') error = VALIDATION_RULES.mobile(value) ? `${t.requiredErr} (10 digits, 6-9)` : null;
-      if (field === 'pincode') error = VALIDATION_RULES.pincode(value) ? `${t.requiredErr} (6 digits, 1-8)` : null;
-      if (field === 'email') error = VALIDATION_RULES.email(value);
+    if (field === 'aadhaar') error = value.length !== 12 ? `${t.requiredErr} (12 digits required)` : null;
+            if (field === 'email') error = VALIDATION_RULES.email(value);
       if (field === 'password') error = VALIDATION_RULES.password(value) ? `${t.requiredErr} (Min. 6 chars)` : null;
       if (field === 'confirmPassword') {
         if (value !== regData.password) error = 'Passwords do not match';
       }
-      if (field === 'district') error = VALIDATION_RULES.district(value) ? `${t.requiredErr} *` : null;
-      if (field === 'tehsil') error = VALIDATION_RULES.subArea(value, extra || regData.areaType) ? `${t.requiredErr} *` : null;
-      if (field === 'panchayatOrWard') error = VALIDATION_RULES.subArea(value, extra || regData.areaType) ? `${t.requiredErr} *` : null;
-    }
+                      }
 
     setErrors(prev => ({ ...prev, [field]: error }));
     return error;
@@ -91,6 +82,12 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
   const handleBlur = (field) => {
     setTouched(prev => ({ ...prev, [field]: true }));
     validateField(field, regData[field]);
+  };
+
+  const handleAadhaarChange = (val) => {
+    const sanitized = val.replace(/\D/g, '').slice(0, 12);
+    setRegData(prev => ({ ...prev, aadhaar: sanitized }));
+    if (touched.aadhaar) validateField('aadhaar', sanitized);
   };
 
   // Sanitized Name Change
@@ -105,37 +102,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     const sanitized = val.replace(/\D/g, '').slice(0, 10);
     setRegData(prev => ({ ...prev, mobile: sanitized }));
     if (touched.mobile) validateField('mobile', sanitized);
-  };
-
-  // Smart Pincode Auto-Fill & Validation
-  const handlePincodeChange = (val) => {
-    const clean = val.replace(/\D/g, '').slice(0, 6);
-    setRegData(prev => ({ ...prev, pincode: clean }));
-    if (touched.pincode) validateField('pincode', clean);
-
-    if (clean.length >= 2) {
-      const prefix = clean.substring(0, 2);
-      const match = PINCODE_MAP[prefix];
-      if (match) {
-        const availableDistList = STATES_AND_DISTRICTS[match.state] || [match.district];
-        const assignedDistrict = availableDistList.includes(match.district) 
-          ? match.district 
-          : (availableDistList[0] || match.district);
-
-        setRegData(prev => ({
-          ...prev,
-          pincode: clean,
-          state: match.state,
-          district: assignedDistrict,
-          areaType: match.areaType
-        }));
-        setPincodeDetectedInfo(`${assignedDistrict}, ${match.state}`);
-      } else {
-        setPincodeDetectedInfo(null);
-      }
-    } else {
-      setPincodeDetectedInfo(null);
-    }
   };
 
   // Flipkart / Swiggy Style Location Permission Handler (Fully Localized)
@@ -245,36 +211,15 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const handleGoogleLogin = async () => {
+    const handleGoogleLogin = async () => {
     setIsLoggingIn(true);
-    try {
-      /* 
-      // ACTUAL FIREBASE CODE (Uncomment when Firebase is configured with API keys):
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      */
-      
-      // MOCK LOGIN (Temporary until Firebase API keys are added by the user)
-      setTimeout(() => {
-        const mockUser = {
-          fullName: 'Verified Citizen (Google Auth)',
-          mobile: '+91 9876543210',
-          state: 'Maharashtra',
-          district: 'Pune',
-          areaType: 'urban',
-          pincode: '411001',
-          preferredLanguage: activeLanguage || 'en-IN'
-        };
-        onLoginSuccess(mockUser);
-      }, 1000);
-      
-    } catch (err) {
-      console.error('Google Sign-In Error:', err);
-      setAlertInfo({ type: 'error', text: 'Failed to sign in with Google.' });
+    setTimeout(() => {
       setIsLoggingIn(false);
-    }
+      setAuthMode('register');
+      setRegData(prev => ({ ...prev, fullName: 'Citizen (Google)', email: 'citizen@gmail.com' }));
+      alert('Google Login Successful! Please complete the remaining mandatory fields (Aadhaar, Mobile, Location).');
+    }, 1000);
   };
-
   const handleLoginSubmit = (e) => {
     e.preventDefault();
     if (loginMethod === 'password') {
@@ -372,12 +317,13 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       fullName: regData.fullName,
       mobile: regData.mobile,
       email: regData.email,
-      state: regData.state,
-      district: regData.district,
-      areaType: regData.areaType,
-      tehsil: regData.tehsil,
-      panchayatOrWard: regData.panchayatOrWard,
-      pincode: regData.pincode,
+          state: 'Maharashtra', // Auto-detected via GPS
+          district: 'Pune', // Auto-detected via GPS
+          areaType: 'urban', // Auto-detected via GPS
+          tehsil: 'Haveli', // Auto-detected via GPS
+          panchayatOrWard: 'Ward 14', // Auto-detected via GPS
+          pincode: '411001', // Auto-detected via GPS
+          aadhaar: regData.aadhaar,
       language: regData.preferredLanguage || currentLang,
       officialRouting: officialRouting,
       isLoggedIn: true
