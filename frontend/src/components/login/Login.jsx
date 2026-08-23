@@ -364,7 +364,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         {/* Civic Issue Preview Grid */}
         <div className="login-issue-images">
           <div className="issue-img-container">
-            <img src="https://images.unsplash.com/photo-1590059345028-2ce16a827404?auto=format&fit=crop&w=300&q=80" alt="Water Scarcity" className="issue-img" />
+            <img src="/water.jpg" alt="Water Scarcity" className="issue-img" />
             <div className="issue-caption">Water Crisis</div>
           </div>
           <div className="issue-img-container">
