@@ -227,21 +227,29 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
       return;
     }
 
-    const citizen = {
-      fullName: loginIdentifier.includes('@') ? loginIdentifier.split('@')[0] : `Citizen (${loginIdentifier.slice(-4)})`,
-      mobile: loginIdentifier,
-      email: loginIdentifier.includes('@') ? loginIdentifier : '',
-      aadhaar: '123456789012', // Mock existing Aadhaar
-      state: 'Maharashtra',
-      district: 'Pune',
-      areaType: 'rural',
-      tehsil: 'Haveli Taluka',
-      panchayatOrWard: 'Wagholi Panchayat',
-      pincode: '412207',
-      language: currentLang,
-      officialRouting: 'BDO Haveli & Collector Pune',
-      isLoggedIn: true
-    };
+    const existingUsers = JSON.parse(localStorage.getItem('janDhwaniUsers') || '[]');
+    const savedUser = existingUsers.find(u => (u.mobile === loginIdentifier || u.email === loginIdentifier) && u.password === loginPassword);
+
+    let citizen = savedUser;
+
+    if (!citizen) {
+      // Fallback for demo mock logins
+      citizen = {
+        fullName: loginIdentifier.includes('@') ? loginIdentifier.split('@')[0] : `Citizen (${loginIdentifier.slice(-4)})`,
+        mobile: loginIdentifier,
+        email: loginIdentifier.includes('@') ? loginIdentifier : '',
+        aadhaar: '123456789012', // Mock existing Aadhaar
+        state: 'Maharashtra',
+        district: 'Pune',
+        areaType: 'rural',
+        tehsil: 'Haveli Taluka',
+        panchayatOrWard: 'Wagholi Panchayat',
+        pincode: '412207',
+        language: currentLang,
+        officialRouting: 'BDO Haveli & Collector Pune',
+        isLoggedIn: true
+      };
+    }
 
     setAlertInfo({ type: 'success', text: 'Verified! Redirecting...' });
     setTimeout(() => {
@@ -303,8 +311,14 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           areaType: 'urban', // Auto-detected via GPS
           pincode: '411001', // Auto-detected via GPS
           aadhaar: regData.aadhaar,
-          preferredLanguage: regData.preferredLanguage
+          email: regData.email,
+          password: regData.password,
+          preferredLanguage: regData.preferredLanguage,
+          isLoggedIn: true
         };
+        const existingUsers = JSON.parse(localStorage.getItem('janDhwaniUsers') || '[]');
+        existingUsers.push(newUser);
+        localStorage.setItem('janDhwaniUsers', JSON.stringify(existingUsers));
         onLoginSuccess(newUser);
       }, 1000);
     } else {
