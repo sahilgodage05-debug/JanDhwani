@@ -1794,3 +1794,13 @@ textarea:focus {
   grid-column: 1 / -1;
   margin-top: 20px;
 }
+
+
+/* Added Mobile Responsiveness */
+@media (max-width: 600px) {
+  .app-container { padding: 10px; }
+  .form-container, .voice-studio-card { padding: 15px; margin: 10px 0; }
+  .loc-source-tabs { flex-direction: column; }
+  .loc-tab { margin-bottom: 5px; width: 100%; }
+  .large-voice-btn { width: 80px; height: 80px; }
+}

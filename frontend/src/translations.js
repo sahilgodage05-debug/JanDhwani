@@ -52,7 +52,7 @@ export const UI_STRINGS = {
     customSpotTab: 'Custom Location',
     confirmedSpotLabel: 'Confirmed Incident Location:',
     confirmCheckboxText: 'I confirm this is the exact problem location for official inspection',
-    submitGrievanceBtn: 'Submit to 3D Digital Twin',
+    submitGrievanceBtn: 'Submit Your Grievance',
     dispatchedTitle: 'Grievance Dispatched to 3D Digital Twin',
     ticketIdText: 'Ticket Number:',
     aiTitle: 'Google Gemini AI Processing',
