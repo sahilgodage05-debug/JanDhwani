@@ -261,11 +261,8 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     // Validate ALL fields on submit
     const nameErr = !regData.fullName ? `${t.requiredErr} *` : (VALIDATION_RULES.fullName(regData.fullName) ? `${t.requiredErr} (Min. 3 letters)` : null);
     const mobErr = !regData.mobile ? `${t.requiredErr} *` : (VALIDATION_RULES.mobile(regData.mobile) ? `${t.requiredErr} (10 digits)` : null);
-    const pinErr = !regData.pincode ? `${t.requiredErr} *` : (VALIDATION_RULES.pincode(regData.pincode) ? `${t.requiredErr} (6 digits)` : null);
+    const aadhaarErr = !regData.aadhaar ? `${t.requiredErr} *` : (regData.aadhaar.length !== 12 ? `${t.requiredErr} (12 digits required)` : null);
     const passErr = !regData.password ? `${t.requiredErr} *` : (VALIDATION_RULES.password(regData.password) ? `${t.requiredErr} (Min. 6 chars)` : null);
-    const distErr = !regData.district ? `${t.requiredErr} *` : null;
-    const tehsilErr = !regData.tehsil ? `${t.requiredErr} *` : null;
-    const wardErr = !regData.panchayatOrWard ? `${t.requiredErr} *` : null;
     const emailErr = VALIDATION_RULES.email(regData.email);
     
     let confirmPassErr = null;
@@ -278,61 +275,47 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
     const allErrors = {
       fullName: nameErr,
       mobile: mobErr,
-      pincode: pinErr,
+      aadhaar: aadhaarErr,
       password: passErr,
       confirmPassword: confirmPassErr,
-      district: distErr,
-      tehsil: tehsilErr,
-      panchayatOrWard: wardErr,
       email: emailErr
     };
 
     setErrors(allErrors);
-    setTouched({
-      fullName: true,
-      mobile: true,
-      pincode: true,
-      password: true,
-      confirmPassword: true,
-      district: true,
-      tehsil: true,
-      panchayatOrWard: true,
-      email: true
-    });
 
-    const hasAnyError = Object.values(allErrors).some(err => err !== null);
-    if (hasAnyError) {
-      setAlertInfo({ 
-        type: 'error', 
-        text: `${t.requiredErr}: Please fill all required fields marked with *` 
-      });
+    // Mark all as touched
+    const allTouched = Object.keys(allErrors).reduce((acc, key) => ({ ...acc, [key]: true }), {});
+    setTouched(allTouched);
+
+    let isValid = !Object.values(allErrors).some(err => err !== null);
+
+    if (!regData.aadhaar || regData.aadhaar.length !== 12) isValid = false;
+    if (!gpsStatus || !gpsStatus.granted) {
+      alert('Please click \'Detect My Location\' (GPS) to proceed.');
       return;
     }
 
-    const officialRouting = regData.areaType === 'rural'
-      ? `BDO (${regData.tehsil}) & DM (${regData.district})`
-      : `Ward Officer (${regData.panchayatOrWard}) & Municipal Commissioner (${regData.district})`;
-
-    const citizen = {
-      fullName: regData.fullName,
-      mobile: regData.mobile,
-      email: regData.email,
+    if (isValid) {
+      setIsLoggingIn(true);
+      setTimeout(() => {
+        setIsLoggingIn(false);
+        const newUser = {
+          fullName: regData.fullName,
+          mobile: regData.mobile,
           state: 'Maharashtra', // Auto-detected via GPS
           district: 'Pune', // Auto-detected via GPS
-          areaType: 'urban', // Auto-detected via GPS
           tehsil: 'Haveli', // Auto-detected via GPS
           panchayatOrWard: 'Ward 14', // Auto-detected via GPS
+          areaType: 'urban', // Auto-detected via GPS
           pincode: '411001', // Auto-detected via GPS
           aadhaar: regData.aadhaar,
-      language: regData.preferredLanguage || currentLang,
-      officialRouting: officialRouting,
-      isLoggedIn: true
-    };
-
-    setAlertInfo({ type: 'success', text: 'Account Created Successfully!' });
-    setTimeout(() => {
-      onLoginSuccess(citizen);
-    }, 500);
+          preferredLanguage: regData.preferredLanguage
+        };
+        onLoginSuccess(newUser);
+      }, 1000);
+    } else {
+      setAlertInfo({ type: 'error', text: 'Please fill all required fields correctly.' });
+    }
   };
 
   const handleDemoSelect = (demoCitizen) => {
@@ -402,19 +385,6 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
            REGISTRATION FORM (Rendered In Chosen Language Only)
            ========================================================================= */
         <form onSubmit={handleRegisterSubmit} className="auth-form registration-form" noValidate>
-          {/* 1-Click DigiLocker Fast-Fill Helper */}
-          <div className="digilocker-helper-banner">
-            <div className="digi-text">
-              <strong>{t.fastFillText}</strong>
-            </div>
-            <button 
-              type="button" 
-              className="digi-fast-btn"
-              onClick={handleDigiLockerFastFill}
-            >
-              {t.fastFillBtn || 'Fast Fill'}
-            </button>
-          </div>
 
           <div className="form-grid-layout">
             <div className="form-column">
