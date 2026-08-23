@@ -778,6 +778,33 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           <button type="submit" className="auth-submit-btn">
             {t.submitSignUp}
           </button>
+
+          {onContinueAsGuest && (
+            <>
+              <div className="guest-divider">
+                <span>OR</span>
+              </div>
+              <button 
+                type="button" 
+                className="guest-btn"
+                onClick={handleGoogleLogin}
+                disabled={isLoggingIn}
+                style={{
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '10px',
+                  background: '#fff',
+                  color: '#333',
+                  border: '1px solid #ccc',
+                  marginBottom: '15px'
+                }}
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{width: '24px'}} />
+                {isLoggingIn ? 'Signing in...' : 'Sign in with Google'}
+              </button>
+            </>
+          )}
         </form>
       ) : (
         /* =========================================================================
