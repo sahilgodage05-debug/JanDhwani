@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import GovernmentEmblem from './GovernmentEmblem';
+import { CheckCircle2, ChevronRight, MapPin, Map, Star, Clock } from 'lucide-react';
 import './ResolvedArchive.css';
 
 function ResolvedArchive({ records, onClearArchive, onDeleteRecord, onBackToMap, onBackToPortal, activeLanguage = 'en-IN' }) {
@@ -53,8 +53,8 @@ function ResolvedArchive({ records, onClearArchive, onDeleteRecord, onBackToMap,
     <div className="resolved-archive-wrapper">
       {/* Top Header */}
       <div className="archive-top-header">
-        <div className="header-nav-actions">
-          <GovernmentEmblem size={42} compact={true} theme="dark" />
+        <div className="branding-compact">
+          <h1>Resolved Grievances</h1>
           <div className="archive-nav-btns-group">
             <button type="button" className="archive-back-btn" onClick={onBackToMap}>
               3D Digital Twin Map

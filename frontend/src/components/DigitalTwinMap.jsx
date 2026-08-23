@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import GovernmentEmblem from './GovernmentEmblem';
+import { Map as MapIcon, Compass, Navigation, RefreshCcw, Layers, Search, User, Filter, Share2, ZoomIn, ZoomOut, Maximize, FileText, CheckCircle2 } from 'lucide-react';
 import './DigitalTwinMap.css';
 
 const GOV_LEVELS = [
@@ -359,7 +359,6 @@ function DigitalTwinMap({
       {/* Top Header: Government Body Switcher */}
       <div className="twin-top-header">
         <div className="header-left">
-          <GovernmentEmblem size={44} compact={true} theme="dark" />
           <div className="twin-nav-actions">
             <button type="button" className="twin-back-btn" onClick={onBackToPortal}>
               ← Grievance Gateway
