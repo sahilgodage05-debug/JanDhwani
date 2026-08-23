@@ -585,7 +585,8 @@ function App() {
     formData.append('lat', lat);
     formData.append('lng', lng);
     
-    fetch('http://localhost:8000/api/complaints', {
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    fetch(`${API_BASE}/api/complaints`, {
       method: 'POST',
       body: formData
     })
