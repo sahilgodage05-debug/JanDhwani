@@ -222,22 +222,16 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
   };
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    if (loginMethod === 'password') {
-      if (!loginIdentifier || !loginPassword) {
-        setAlertInfo({ type: 'error', text: `${t.requiredErr} *` });
-        return;
-      }
-    } else {
-      if (!loginIdentifier || !loginOtp) {
-        setAlertInfo({ type: 'error', text: `${t.requiredErr} *` });
-        return;
-      }
+    if (!loginIdentifier || !loginPassword) {
+      setAlertInfo({ type: 'error', text: `${t.requiredErr} *` });
+      return;
     }
 
     const citizen = {
       fullName: loginIdentifier.includes('@') ? loginIdentifier.split('@')[0] : `Citizen (${loginIdentifier.slice(-4)})`,
       mobile: loginIdentifier,
       email: loginIdentifier.includes('@') ? loginIdentifier : '',
+      aadhaar: '123456789012', // Mock existing Aadhaar
       state: 'Maharashtra',
       district: 'Pune',
       areaType: 'rural',
