@@ -56,7 +56,7 @@ export const UI_STRINGS = {
     dispatchedTitle: 'Request Dispatched to 3D Digital Twin',
     ticketIdText: 'Ticket Number:',
     aiTitle: 'Google Gemini AI Processing',
-    syncedBanner: 'Synced to National Data Grid • 3D Beacon Generated',
+    syncedBanner: 'Synced to National Infrastructure Data Grid • 3D Demand Hotspot Plotted',
     fileAnotherBtn: 'File Another Request',
     logoutText: 'Logout',
     resolvedArchiveTab: 'Resolved Archive',

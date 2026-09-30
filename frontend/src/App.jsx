@@ -878,35 +878,35 @@ function App() {
               
               <div className="ai-summary-card">
                 <div className="ai-summary-badge-header">
-                  <span className="ai-badge">Google Gemini 1.5 Flash: Problem Decomposition & Executive Synthesis</span>
+                  <span className="ai-badge">Google Gemini 1.5 Flash: Data Fusion & Priority Assessment</span>
                 </div>
 
                 {/* 1-Line Structured Executive Brief */}
                 <div className="executive-brief-box">
-                  <strong>Executive Summary for Administrative Decision Makers:</strong>
+                  <strong>Demand Hotspot Executive Summary:</strong>
                   <p>"{submissionResult.translatedText}"</p>
                 </div>
 
                 {/* Structured Breakdown into Sub-Parts */}
                 <div className="decomposition-grid">
                   <div className="decomp-cell">
-                    <small>Core Infrastructure Defect</small>
+                    <small>Primary Infrastructure Gap</small>
                     <strong>{submissionResult.coreDefect}</strong>
                   </div>
                   <div className="decomp-cell">
-                    <small>Impacted Population & Scope</small>
+                    <small>Demographic Vulnerability Index</small>
                     <strong>{submissionResult.affectedScope}</strong>
                   </div>
                   <div className="decomp-cell">
-                    <small>Risk & Hazard Analysis</small>
+                    <small>Public Investment Priority</small>
                     <strong>{submissionResult.riskLevel}</strong>
                   </div>
                   <div className="decomp-cell">
-                    <small>Reported Inaction Duration</small>
+                    <small>Citizen Feedback Frequency</small>
                     <strong>{submissionResult.duration}</strong>
                   </div>
                   <div className="decomp-cell full-width">
-                    <small>Prescribed Administrative Action</small>
+                    <small>Recommended Development Project</small>
                     <strong>{submissionResult.actionRequired}</strong>
                   </div>
                 </div>
@@ -915,7 +915,7 @@ function App() {
                   <div><strong>Department:</strong> {submissionResult.department}</div>
                   <div><strong>Location:</strong> {submissionResult.confirmedLocation}</div>
                   <div><strong>Routing Unit:</strong> {submissionResult.routingUnit}</div>
-                  <div><strong>Urgency Score:</strong> <span className="score-badge">{submissionResult.severityScore}</span></div>
+                  <div><strong>Final Priority Score (Data Fusion):</strong> <span className="score-badge">{submissionResult.severityScore}</span></div>
                 </div>
                 
                 {submissionResult.imageVerified && (
