@@ -744,6 +744,7 @@ function App() {
 
       {/* Main Content Area */}
       {activeTab === '3d_twin' ? (
+        <>
         /* STEP 4: 3D DIGITAL TWIN GAMIFIED DASHBOARD (Three.js) */
         <DigitalTwinMap 
           hotspots={activeComplaints}
@@ -779,6 +780,7 @@ function App() {
               />
             </div>
           </div>
+        </>
       ) : activeTab === 'resolved_archive' ? (
         /* RESOLVED ISSUES ARCHIVE & RECORDS LEDGER */
         <ResolvedArchive 
