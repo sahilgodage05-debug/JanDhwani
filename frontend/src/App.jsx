@@ -79,7 +79,7 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // Grievance form state
+  // Request form state
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [voiceDuration, setVoiceDuration] = useState(0);
@@ -560,7 +560,7 @@ function App() {
     if (!isLocationConfirmed) {
       alert(selectedLanguage === 'en-IN' 
         ? 'Please check the box to confirm this is the exact incident location before submitting.' 
-        : 'कृपया शिकायत का स्थान सत्यापित एवं पुष्ट करें (Please verify location)');
+        : 'कृपया विकास अनुरोध का स्थान सत्यापित एवं पुष्ट करें (Please verify location)');
       return;
     }
 
@@ -691,7 +691,7 @@ function App() {
               className={`nav-btn ${activeTab === 'grievance' ? 'active' : ''}`}
               onClick={() => setActiveTab('grievance')}
             >
-              {t.fileGrievanceTitle}
+              {t.fileRequestTitle}
             </button>
           )}
           
@@ -712,7 +712,7 @@ function App() {
                 className={`nav-btn ${activeTab === '3d_twin' ? 'active' : ''}`}
                 onClick={() => setActiveTab('3d_twin')}
               >
-                Live Grievance Map
+                Live Demand Map
               </button>
 
             </>
@@ -770,12 +770,12 @@ function App() {
         /* MY COMPLAINTS / HISTORY VIEW */
         <div className="card" style={{ padding: '30px' }}>
           <h2>My Complaints (History)</h2>
-          <p style={{ color: '#666', marginBottom: '20px' }}>View the status, assigned ministry, and AI routing analysis of your submitted grievances.</p>
+          <p style={{ color: '#666', marginBottom: '20px' }}>View the status, assigned ministry, and AI routing analysis of your submitted development requests.</p>
           
           {activeComplaints.filter(c => c.citizen === (currentUser?.fullName || 'Citizen')).length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', background: '#f9f9f9', borderRadius: '10px' }}>
               <p>You have not submitted any complaints yet.</p>
-              <button className="auth-submit-btn" style={{ maxWidth: '200px', marginTop: '15px' }} onClick={() => setActiveTab('grievance')}>File a Grievance</button>
+              <button className="auth-submit-btn" style={{ maxWidth: '200px', marginTop: '15px' }} onClick={() => setActiveTab('grievance')}>File a Request</button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -851,7 +851,7 @@ function App() {
 
               </div>
               <h1 className="title">{t.portalTitle}</h1>
-              <p className="subtitle">{t.fileGrievanceTitle} • {t.fileGrievanceSub}</p>
+              <p className="subtitle">{t.fileRequestTitle} • {t.fileRequestSub}</p>
             </div>
 
             {/* Citizen Attached Demographics Banner */}
@@ -1016,9 +1016,9 @@ function App() {
                 </div>
               </div>
 
-              {/* Grievance Text Area (Synchronized with Voice & Keyboard) */}
+              {/* Request Text Area (Synchronized with Voice & Keyboard) */}
               <div className="form-group">
-                <label>{t.yourGrievance} (Transcript / Text) <span className="req">*</span></label>
+                <label>{t.yourRequest} (Transcript / Text) <span className="req">*</span></label>
                 <div className="textarea-container">
                   <textarea 
                     rows="4" 
@@ -1148,7 +1148,7 @@ function App() {
               </div>
 
               <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Google AI Processing...' : t.submitGrievanceBtn}
+                {isSubmitting ? 'Google AI Processing...' : t.submitRequestBtn}
               </button>
             </form>
           )}

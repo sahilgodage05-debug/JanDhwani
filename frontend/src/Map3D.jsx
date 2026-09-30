@@ -207,7 +207,7 @@ export default function Map3D({ onMarkerClick }) {
   return (
     <div className="map-container">
       <div className="map-header">
-        <h2>📍 लाइव शिकायत मैप (Live Grievance Map)</h2>
+        <h2>📍 लाइव विकास अनुरोध मैप (Live Demand Map)</h2>
         <p>देशभर से आ रही समस्याओं का सीधा नज़ारा</p>
       </div>
       <div className="canvas-wrapper">
