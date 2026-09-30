@@ -185,7 +185,7 @@ function IndiaMap({ onMarkerClick, complaints = [] }) {
               onPointerOver={(e) => document.body.style.cursor='pointer'} 
               onPointerOut={(e) => document.body.style.cursor='default'}
             >
-              <sphereGeometry args={[0.05 * (complaint.urgency || 5), 32, 32]} />
+              <sphereGeometry args={[0.04 + 0.008 * (complaint.urgency || 5), 32, 32]} />
               <meshStandardMaterial 
                 color={color} 
                 emissive={color} 
