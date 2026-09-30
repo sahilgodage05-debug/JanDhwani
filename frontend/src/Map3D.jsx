@@ -5,13 +5,7 @@ import * as THREE from 'three';
 import * as d3 from 'd3-geo';
 
 // A dummy array of complaints with lat, lng, and urgency score (1-10)
-const dummyComplaints = [
-  { id: 1, title: 'पानी की लाइन टूटी है', lat: 28.6139, lng: 77.2090, urgency: 8, location: 'New Delhi' },
-  { id: 2, title: 'सड़क पर गड्ढा है', lat: 19.0760, lng: 72.8777, urgency: 5, location: 'Mumbai' },
-  { id: 3, title: 'अस्पताल में डॉक्टर नहीं हैं', lat: 25.5941, lng: 85.1376, urgency: 10, location: 'Patna' },
-  { id: 4, title: 'बिजली का खंभा गिर गया', lat: 13.0827, lng: 80.2707, urgency: 9, location: 'Chennai' },
-  { id: 5, title: 'कूड़े का ढेर', lat: 22.5726, lng: 88.3639, urgency: 4, location: 'Kolkata' },
-];
+
 
 function MarkerTooltip({ complaint, color }) {
   const tooltipRef = useRef();
@@ -48,7 +42,7 @@ function MarkerTooltip({ complaint, color }) {
   );
 }
 
-function IndiaMap({ onMarkerClick }) {
+function IndiaMap({ onMarkerClick, complaints = [] }) {
   const [geoData, setGeoData] = useState(null);
   const [districtData, setDistrictData] = useState(null);
   const { camera } = useThree();
@@ -173,19 +167,24 @@ function IndiaMap({ onMarkerClick }) {
       </group>
 
       {/* Render Horizontal Rectangular Markers for complaints */}
-      {dummyComplaints.map(complaint => {
+      {complaints.map(complaint => {
         const [x, y] = projection([complaint.lng, complaint.lat]);
         const color = complaint.urgency >= 8 ? '#d32f2f' : (complaint.urgency >= 5 ? '#f57c00' : '#388e3c');
         
         return (
           <group key={complaint.id} position={[x, 0.3, y]}>
-            {/* Slim Marker */}
-            <mesh rotation={[0, 0, 0]} onClick={(e) => { e.stopPropagation(); if(onMarkerClick) onMarkerClick(complaint); }} onPointerOver={(e) => document.body.style.cursor='pointer'} onPointerOut={(e) => document.body.style.cursor='default'}>
-              <boxGeometry args={[0.15, 0.6, 0.15]} />
+            {/* Dynamic Red Dot based on urgency */}
+            <mesh 
+              rotation={[0, 0, 0]} 
+              onClick={(e) => { e.stopPropagation(); if(onMarkerClick) onMarkerClick(complaint); }} 
+              onPointerOver={(e) => document.body.style.cursor='pointer'} 
+              onPointerOut={(e) => document.body.style.cursor='default'}
+            >
+              <sphereGeometry args={[0.05 * (complaint.urgency || 5), 32, 32]} />
               <meshStandardMaterial 
                 color={color} 
                 emissive={color} 
-                emissiveIntensity={0.5} 
+                emissiveIntensity={0.8} 
                 transparent 
                 opacity={0.9}
               />
@@ -203,7 +202,7 @@ function IndiaMap({ onMarkerClick }) {
   );
 }
 
-export default function Map3D({ onMarkerClick }) {
+export default function Map3D({ onMarkerClick, complaints = [] }) {
   return (
     <div className="map-container">
       <div className="map-header">
@@ -224,7 +223,7 @@ export default function Map3D({ onMarkerClick }) {
             minPolarAngle={Math.PI / 4} 
             maxPolarAngle={Math.PI / 3} 
           />
-          <IndiaMap onMarkerClick={onMarkerClick} />
+          <IndiaMap onMarkerClick={onMarkerClick} complaints={complaints} />
         </Canvas>
       </div>
     </div>

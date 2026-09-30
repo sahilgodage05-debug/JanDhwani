@@ -45,6 +45,8 @@ function App() {
   
   // Persistent Complaint & Resolved Records State (Local Storage backed)
   const [activeComplaints, setActiveComplaints] = useState(DEFAULT_HOTSPOTS);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
 
   const [resolvedRecords, setResolvedRecords] = useState(INITIAL_RESOLVED_RECORDS);
 
@@ -746,7 +748,7 @@ function App() {
 
           
           <div className="maps-container">
-            <Map3D onMarkerClick={(complaint) => setSelected3DMarkerLocation(complaint.coords && complaint.coords.lat && complaint.coords.lng ? `${complaint.coords.lat},${complaint.coords.lng}` : `${complaint.title}, ${complaint.location}`)} />
+            <Map3D complaints={activeComplaints} onMarkerClick={(complaint) => setSelected3DMarkerLocation(complaint.coords && complaint.coords.lat && complaint.coords.lng ? `${complaint.coords.lat},${complaint.coords.lng}` : `${complaint.title}, ${complaint.location}`)} />
             <div className="google-map-embed-wrapper" style={{background: '#fff', borderRadius: '20px', padding: '10px', boxShadow: '0 15px 35px rgba(0,0,0,0.1)'}}>
               <div className="map-embed-header" style={{marginBottom: '10px', display: 'flex', justifyContent: 'space-between', padding: '0 10px'}}>
                 <span style={{color: '#3e2723', fontWeight: 'bold'}}>Real-time Satellite Mapping (Syncs with 3D Map)</span>
@@ -778,8 +780,34 @@ function App() {
               AI-prioritized list fusing real citizen feedback with National Demographic Indices (Poverty, Infrastructure Gaps) to identify extreme necessity zones.
             </p>
             
+                        <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
+              <input 
+                type="text" 
+                placeholder="Search by location, issue, or department..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ flex: 1, padding: '12px 20px', borderRadius: '30px', border: '1px solid #ccc', fontSize: '1rem', outline: 'none' }}
+              />
+              <select 
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                style={{ padding: '12px 20px', borderRadius: '30px', border: '1px solid #ccc', fontSize: '1rem', outline: 'none', background: '#f5f5f5' }}
+              >
+                <option value="All">All National Projects</option>
+                <option value="Jal Shakti">Jal Shakti (Water)</option>
+                <option value="Rural Development">Rural Development (Roads/PMGSY)</option>
+                <option value="Women and Child">Poshan Abhiyan (WCD)</option>
+                <option value="Health">Ayushman Bharat (Health)</option>
+                <option value="Information Technology">BharatNet (Telecom/IT)</option>
+              </select>
+            </div>
+            
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {[...activeComplaints].sort((a, b) => b.urgency - a.urgency).map((complaint) => (
+              {[...activeComplaints]
+                .filter(c => categoryFilter === 'All' || c.department.includes(categoryFilter) || (c.title && c.title.includes(categoryFilter)))
+                .filter(c => (c.title && c.title.toLowerCase().includes(searchQuery.toLowerCase())) || (c.summary && c.summary.toLowerCase().includes(searchQuery.toLowerCase())) || (c.location && c.location.toLowerCase().includes(searchQuery.toLowerCase())) || (c.department && c.department.toLowerCase().includes(searchQuery.toLowerCase())))
+                .sort((a, b) => b.urgency - a.urgency)
+                .map((complaint) => (
                 <div key={complaint.id} style={{ borderLeft: `6px solid ${complaint.urgency >= 9 ? '#d32f2f' : '#f57c00'}`, background: '#fafafa', padding: '20px', borderRadius: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                   
                   {/* Left Column: Core Data */}
