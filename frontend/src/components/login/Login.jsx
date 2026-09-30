@@ -240,11 +240,15 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
   };
   const handleGovSubmit = (e) => {
     e.preventDefault();
-    if (loginIdentifier === 'admin' && loginPassword === 'admin123') {
+    
+    // Check if ID is exactly 10 digits
+    const isTenDigits = /^\d{10}$/.test(loginIdentifier);
+    
+    if (isTenDigits && loginPassword.length > 0) {
       setAlertInfo({ type: 'success', text: 'Official Verified! Accessing 3D Dashboard...' });
       setTimeout(() => {
         onLoginSuccess({
-          fullName: 'S. K. Sharma (Collector)',
+          fullName: 'Official (' + loginIdentifier.slice(-4) + ')',
           role: 'government',
           district: 'Pune',
           state: 'Maharashtra',
@@ -253,7 +257,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
         });
       }, 500);
     } else {
-      setAlertInfo({ type: 'error', text: 'Invalid Government Credentials. Use admin / admin123' });
+      setAlertInfo({ type: 'error', text: 'Invalid Govt Credentials. ID must be exactly 10 digits.' });
     }
   };
 
