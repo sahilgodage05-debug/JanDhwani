@@ -764,7 +764,7 @@ function App() {
               <iframe
                 title="Google Map Location Preview"
                 className="google-map-iframe"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(selected3DMarkerLocation || 'India Gate, Delhi')}&t=m&z=14&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(selected3DMarkerLocation || 'India Gate, Delhi')}&t=k&z=14&ie=UTF8&iwloc=&output=embed`}
                 loading="lazy"
                 style={{width: '100%', height: '500px', border: 'none', borderRadius: '15px'}}
               />

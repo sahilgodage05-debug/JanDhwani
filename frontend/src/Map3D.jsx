@@ -168,7 +168,12 @@ function IndiaMap({ onMarkerClick, complaints = [] }) {
 
       {/* Render Horizontal Rectangular Markers for complaints */}
       {complaints.map(complaint => {
-        const [x, y] = projection([complaint.lng, complaint.lat]);
+        const lat = complaint.coords?.lat || complaint.lat;
+        const lng = complaint.coords?.lng || complaint.lng;
+        if (!lat || !lng) return null;
+        const proj = projection([lng, lat]);
+        if (!proj) return null;
+        const [x, y] = proj;
         const color = complaint.urgency >= 8 ? '#d32f2f' : (complaint.urgency >= 5 ? '#f57c00' : '#388e3c');
         
         return (
