@@ -701,7 +701,7 @@ function App() {
               className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`}
               onClick={() => setActiveTab('history')}
             >
-              My Complaints (History)
+              My Requests (History)
             </button>
           )}
 
@@ -769,12 +769,12 @@ function App() {
       ) : activeTab === 'history' ? (
         /* MY COMPLAINTS / HISTORY VIEW */
         <div className="card" style={{ padding: '30px' }}>
-          <h2>My Complaints (History)</h2>
+          <h2>My Requests (History)</h2>
           <p style={{ color: '#666', marginBottom: '20px' }}>View the status, assigned ministry, and AI routing analysis of your submitted development requests.</p>
           
           {activeComplaints.filter(c => c.citizen === (currentUser?.fullName || 'Citizen')).length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', background: '#f9f9f9', borderRadius: '10px' }}>
-              <p>You have not submitted any complaints yet.</p>
+              <p>You have not submitted any development requests yet.</p>
               <button className="auth-submit-btn" style={{ maxWidth: '200px', marginTop: '15px' }} onClick={() => setActiveTab('grievance')}>File a Request</button>
             </div>
           ) : (
@@ -814,7 +814,7 @@ function App() {
                       <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 5px 0' }}>Routing Status</p>
                       <p style={{ margin: '0 0 15px 0' }}>📍 Routed to: <strong>{complaint.routing || complaint.district + ' Authorities'}</strong></p>
                       
-                      <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 5px 0' }}>AI Urgency Score</p>
+                      <p style={{ fontSize: '0.9rem', color: '#666', margin: '0 0 5px 0' }}>AI Priority Score</p>
                       <p style={{ margin: 0 }}>
                         <span style={{ 
                           display: 'inline-block',
