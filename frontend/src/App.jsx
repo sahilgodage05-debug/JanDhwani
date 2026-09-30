@@ -929,19 +929,34 @@ function App() {
                 <span>{t.syncedBanner}</span>
               </div>
 
-              <button 
-                type="button" 
-                className="submit-btn secondary-btn" 
-                onClick={() => {
-                  setSubmissionResult(null);
-                  setText('');
-                  setImageFile(null);
-                  setImagePreview(null);
-                  setImageAiAnalysis(null);
-                }}
-              >
-                {t.fileAnotherBtn}
-              </button>
+              <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+                <button 
+                  type="button" 
+                  className="submit-btn" 
+                  style={{ flex: 1, backgroundColor: '#1a73e8', color: 'white', border: 'none' }}
+                  onClick={() => {
+                    setActiveTab('history');
+                    setSubmissionResult(null);
+                    setText('');
+                  }}
+                >
+                  View in History
+                </button>
+                <button 
+                  type="button" 
+                  className="submit-btn secondary-btn" 
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    setSubmissionResult(null);
+                    setText('');
+                    setImageFile(null);
+                    setImagePreview(null);
+                    setImageAiAnalysis(null);
+                  }}
+                >
+                  {t.fileAnotherBtn}
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="form" noValidate>
