@@ -772,14 +772,14 @@ function App() {
           <h2>My Requests (History)</h2>
           <p style={{ color: '#666', marginBottom: '20px' }}>View the status, assigned ministry, and AI routing analysis of your submitted development requests.</p>
           
-          {activeComplaints.filter(c => c.citizen === (currentUser?.fullName || 'Citizen')).length === 0 ? (
+          {activeComplaints.length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center', background: '#f9f9f9', borderRadius: '10px' }}>
               <p>You have not submitted any development requests yet.</p>
               <button className="auth-submit-btn" style={{ maxWidth: '200px', marginTop: '15px' }} onClick={() => setActiveTab('grievance')}>File a Request</button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {activeComplaints.filter(c => c.citizen === (currentUser?.fullName || 'Citizen')).map(complaint => (
+              {activeComplaints.map(complaint => (
                 <div key={complaint.id} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '20px', background: '#fff', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                     <h3 style={{ margin: 0, color: '#1a73e8' }}>{complaint.id}</h3>
