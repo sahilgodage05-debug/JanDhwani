@@ -1,64 +1,63 @@
 import os
-from google.cloud import bigquery
+import sqlite3
 
-MOCK_MODE = os.getenv("MOCK_MODE", "true").lower() == "true"
+def get_db_connection():
+    # Use absolute path to ensure we can connect from anywhere
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    db_path = os.path.join(base_dir, 'data', 'demographics.db')
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def get_final_priority_score(district: str, base_severity: int) -> float:
     """
-    Queries BigQuery for demographic and infrastructure data for the district.
-    Calculates a final priority score by combining the AI's base severity
-    with the district's vulnerability index.
+    Combines the AI's base severity (1-10) with National Demographic Data from SQLite DB.
+    Formula: Base Severity + (Poverty Bonus) + (Population Bonus) - (Infra Access Penalty)
     """
-    if MOCK_MODE:
-        print(f"[MOCK] Simulating BigQuery lookup for district: {district}")
-        # In mock mode, we just add a random bump based on length of district name
-        vulnerability_modifier = (len(district) % 5) / 2.0 
-        final_score = min(10.0, base_severity + vulnerability_modifier)
-        return round(final_score, 1)
-
-    client = bigquery.Client()
+    print(f"[DATA FUSION] Fetching demographic & infra data for district: {district} from Real DB")
     
-    # Example dataset: jandhwani_data.district_demographics
-    project_id = os.getenv("GCP_PROJECT_ID")
-    dataset_id = os.getenv("BQ_DATASET_ID", "jandhwani_data")
-    table_id = os.getenv("BQ_TABLE_ID", "district_demographics")
-    
-    # Sanitize inputs in production!
-    query = f"""
-        SELECT poverty_index, infra_access_score 
-        FROM `{project_id}.{dataset_id}.{table_id}` 
-        WHERE district_name = @district
-        LIMIT 1
-    """
-    
-    job_config = bigquery.QueryJobConfig(
-        query_parameters=[
-            bigquery.ScalarQueryParameter("district", "STRING", district)
-        ]
-    )
-    
-    query_job = client.query(query, job_config=job_config)
-    results = list(query_job.result())
-    
-    if not results:
-        # District not found, return base severity
-        return float(base_severity)
+    # Connect to the local SQLite database
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT poverty_index, infra_access_score, population_density_index FROM district_data WHERE district = ?", (district,))
+        row = cursor.fetchone()
+        conn.close()
         
-    row = results[0]
-    poverty_index = row.poverty_index # 0.0 to 1.0 (higher means poorer)
-    infra_access_score = row.infra_access_score # 0.0 to 1.0 (higher means better access)
+        if row:
+            poverty_index = row['poverty_index']
+            infra_access_score = row['infra_access_score']
+            population_density_index = row['population_density_index']
+        else:
+            print(f"  -> District '{district}' not found in DB. Using defaults.")
+            poverty_index = 0.4
+            infra_access_score = 0.5
+            population_density_index = 0.5
+            
+    except Exception as e:
+        print(f"  -> Database error: {e}. Using defaults.")
+        poverty_index = 0.4
+        infra_access_score = 0.5
+        population_density_index = 0.5
     
-    # Formula: 
-    # Base Severity (1-10) 
-    # + Poverty Bonus (up to +2.0) 
-    # - Infra Access Penalty (up to -1.0)
+    # Algorithm: 
+    # Max Poverty Bonus: +3.0 points (highly vulnerable areas get priority)
+    # Max Population Bonus: +1.5 points (areas with more people affected get priority)
+    # Max Infra Penalty: -2.0 points (already developed areas get slightly lower priority)
     
-    poverty_bonus = poverty_index * 2.0
-    infra_penalty = infra_access_score * 1.0
+    poverty_bonus = poverty_index * 3.0
+    population_bonus = population_density_index * 1.5
+    infra_penalty = infra_access_score * 2.0
     
-    final_score = base_severity + poverty_bonus - infra_penalty
+    final_score = base_severity + poverty_bonus + population_bonus - infra_penalty
     
-    # Clamp between 1.0 and 10.0
+    # Clamp between 1.0 and 10.0 (10 being absolute emergency)
     final_score = max(1.0, min(10.0, final_score))
+    
+    print(f"  -> Base AI Severity: {base_severity}")
+    print(f"  -> Poverty Index ({poverty_index}) -> Bonus: +{poverty_bonus:.1f}")
+    print(f"  -> Population Index ({population_density_index}) -> Bonus: +{population_bonus:.1f}")
+    print(f"  -> Infra Access ({infra_access_score}) -> Penalty: -{infra_penalty:.1f}")
+    print(f"  -> FINAL FUSION SCORE: {final_score:.1f}")
     
     return round(final_score, 1)
