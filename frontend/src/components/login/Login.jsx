@@ -452,6 +452,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
           <div className="login-instructions" style={{ background: '#ffebee', color: '#b71c1c', border: '1px solid #ffcdd2' }}>
             <p style={{ margin: 0, fontWeight: 'bold' }}>National Digital Twin Access</p>
             <p style={{ margin: '5px 0 0 0', fontSize: '0.85rem' }}>Restricted to Authorized Government Officials Only.</p>
+            <p style={{ margin: '5px 0 0 0', fontSize: '0.80rem', color: '#d32f2f', fontStyle: 'italic' }}>* Demo Tip: Temporarily enter any 10-digit number and any password to access the dashboard.</p>
           </div>
 
           <div className="form-group">
@@ -460,7 +461,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               type="text" 
               value={loginIdentifier} 
               onChange={e => setLoginIdentifier(e.target.value)} 
-              placeholder="e.g. admin" 
+              placeholder="e.g. 9876543210" 
             />
           </div>
           <div className="form-group">
@@ -469,7 +470,7 @@ function Login({ onLoginSuccess, onContinueAsGuest, activeLanguage, onLanguageCh
               type="password" 
               value={loginPassword} 
               onChange={e => setLoginPassword(e.target.value)} 
-              placeholder="e.g. admin123" 
+              placeholder="Enter Password" 
             />
           </div>
 
