@@ -712,15 +712,9 @@ function App() {
                 className={`nav-btn ${activeTab === '3d_twin' ? 'active' : ''}`}
                 onClick={() => setActiveTab('3d_twin')}
               >
-                3D Digital Twin Map
+                Live Grievance Map
               </button>
-              <button 
-                type="button"
-                className={`nav-btn ${activeTab === 'resolved_archive' ? 'active' : ''}`}
-                onClick={() => setActiveTab('resolved_archive')}
-              >
-                Resolved Archive
-              </button>
+
             </>
           )}
         </div>
@@ -745,17 +739,7 @@ function App() {
       {/* Main Content Area */}
       {activeTab === '3d_twin' ? (
         <>
-        /* STEP 4: 3D DIGITAL TWIN GAMIFIED DASHBOARD (Three.js) */
-        <DigitalTwinMap 
-          hotspots={activeComplaints}
-          onClearAllComplaints={handleClearAllComplaints}
-          onRestoreDemo={handleRestoreDemoHotspots}
-          onResolveCitizen={handleResolveByCitizen}
-          onResolveAuthority={handleResolveByAuthority}
-          onViewArchive={() => setActiveTab('resolved_archive')}
-          onBackToPortal={() => setActiveTab('grievance')}
-          currentUser={currentUser}
-        />
+
 
           <div className="maps-container">
             <Map3D onMarkerClick={(complaint) => setSelected3DMarkerLocation(complaint.coords && complaint.coords.lat && complaint.coords.lng ? `${complaint.coords.lat},${complaint.coords.lng}` : `${complaint.title}, ${complaint.location}`)} />
@@ -781,16 +765,7 @@ function App() {
             </div>
           </div>
         </>
-      ) : activeTab === 'resolved_archive' ? (
-        /* RESOLVED ISSUES ARCHIVE & RECORDS LEDGER */
-        <ResolvedArchive 
-          records={resolvedRecords}
-          onClearArchive={handleClearResolvedArchive}
-          onDeleteRecord={handleDeleteResolvedRecord}
-          onBackToMap={() => setActiveTab('3d_twin')}
-          onBackToPortal={() => setActiveTab('grievance')}
-          activeLanguage={selectedLanguage}
-        />
+
       ) : activeTab === 'history' ? (
         /* MY COMPLAINTS / HISTORY VIEW */
         <div className="card" style={{ padding: '30px' }}>
